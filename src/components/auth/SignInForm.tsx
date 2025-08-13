@@ -32,42 +32,47 @@ export default function SignInForm() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    setErr(null); setMsg(null); setLoading(true)
+async function onSubmit(e: FormEvent) {
+  e.preventDefault()
+  setErr(null)
+  setMsg(null)
+  setLoading(true)
 
-    try {
-      if (mode === 'sign_in') {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        const { data } = await supabaseClient.auth.getSession()
-        if (data.session) {
-          await syncCookieAndWait(data.session)
-          router.replace('/notes')
-        } else {
-          setMsg('Signed in, but no session returned. Try refreshing.')
-        }
+  try {
+    if (mode === 'sign_in') {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      const { data } = await supabaseClient.auth.getSession()
+      if (data.session) {
+        await syncCookieAndWait(data.session)
+        router.replace('/notes')
       } else {
-        const { data, error } = await supabaseClient.auth.signUp({ email, password })
-        if (error) throw error
-        if (data.session) {
-          await syncCookieAndWait(data.session)
-          router.replace('/notes')
-        } else {
-          setMsg('Check your email to confirm your account, then sign in.')
-        }
+        setMsg('Signed in, but no session returned. Try refreshing.')
       }
-    } catch (e) {
-        if (e instanceof Error) {
-        setErr(e.message)
     } else {
-        setErr('Something went wrong')
-    }
-    } finally {
-      setLoading(false)
-    }
-  }
+      const { data, error } = await supabaseClient.auth.signUp({ email, password })
+      if (error) throw error
 
+      if (data.session) {
+        // Email confirmations OFF → sign in immediately
+        await syncCookieAndWait(data.session)
+        router.replace('/notes')
+      } else {
+        // Email confirmations ON → no session, show confirmation message
+        setMsg('Check your email to confirm your account, then sign in.')
+      }
+    }
+  } catch (e: unknown) {
+    setErr(e instanceof Error ? e.message : 'Something went wrong')
+  } finally {
+    setLoading(false)
+  }
+}
+
+
+
+
+  
   async function onForgot() {
     setErr(null); setMsg(null)
     if (!email) return setErr('Enter your email above first.')
