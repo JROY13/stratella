@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     session?: Session | null
   }
 
+  // Prepare the response we'll attach Set-Cookie headers to
   const res = NextResponse.json({ ok: true })
   const cookieStore = await cookies()
 

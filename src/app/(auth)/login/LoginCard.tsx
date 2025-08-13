@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { supabaseClient } from '@/lib/supabase-client'
-import { Auth } from '@supabase/auth-ui-react'
+import SignInForm from '@/components/auth/SignInForm'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,12 +15,12 @@ async function syncCookieAndWait(session: Session) {
     body: JSON.stringify({ event: 'SIGNED_IN' as const, session }),
   })
 
-  // Poll the server until it sees the cookie
+  // Poll server until it sees the cookie
   for (let i = 0; i < 20; i++) {
     const w = await fetch('/auth/whoami', { cache: 'no-store' })
-    const j = await w.json().catch(() => ({}))
-    if (j?.user) return true
-    await new Promise(res => setTimeout(res, 100))
+    const j: unknown = await w.json().catch(() => ({}))
+    if ((j as { user?: unknown })?.user) return true
+    await new Promise((res) => setTimeout(res, 100))
   }
   return false
 }
@@ -46,18 +46,20 @@ export default function LoginCard() {
       }
     })
 
-    return () => { mounted = false; sub.subscription.unsubscribe() }
+    return () => {
+      mounted = false
+      sub.subscription.unsubscribe()
+    }
   }, [router])
 
   return (
     <div className="min-h-[calc(100dvh-3.5rem)] grid place-items-center px-4">
-      {/* Optional hero — remove Image if you didn’t add it */}
       <div className="max-w-2xl text-center space-y-4 mb-8">
         <div className="flex items-center justify-center gap-3">
-          <Image src="/stratella-dark.png" alt="Stratella" width={36} height={36} className="rounded-md" />
-          <span className="text-2xl font-semibold tracking-tight">Stratella</span>
+          <Image src="/stratella-dark.png" alt="Stratella" width={72} height={72} className="rounded-md" />
+          <span className="text-4xl font-semibold tracking-tight">Stratella</span>
         </div>
-        <h1 className="text-3xl md:text-4xl font-semibold">
+        <h1 className="text-4xl md:text-6xl font-semibold">
           All your tasks. From every note. In one place.
         </h1>
         <p className="text-muted-foreground">
@@ -67,9 +69,11 @@ export default function LoginCard() {
       </div>
 
       <Card className="w-full max-w-sm">
-        <CardHeader><CardTitle className="text-lg">Sign in</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-lg">Sign in</CardTitle>
+        </CardHeader>
         <CardContent>
-          <Auth supabaseClient={supabaseClient} providers={[]} view="sign_in" />
+          <SignInForm />
         </CardContent>
       </Card>
     </div>
