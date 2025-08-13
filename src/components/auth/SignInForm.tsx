@@ -57,8 +57,12 @@ export default function SignInForm() {
           setMsg('Check your email to confirm your account, then sign in.')
         }
       }
-    } catch (e: any) {
-      setErr(e?.message ?? 'Something went wrong')
+    } catch (e) {
+        if (e instanceof Error) {
+        setErr(e.message)
+    } else {
+        setErr('Something went wrong')
+    }
     } finally {
       setLoading(false)
     }
