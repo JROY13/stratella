@@ -1,47 +1,34 @@
+// src/app/auth/refresh/route.ts
+
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import type { Session } from '@supabase/supabase-js'
 
+// Make this route dynamic so it never gets cached
 export const dynamic = 'force-dynamic'
 
-type AllowedEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED'
-
-const cookieDefaults = {
-  path: '/',
-  sameSite: 'lax' as const,
-  secure: process.env.NODE_ENV === 'production',
-}
-
 export async function POST(req: Request) {
-  let body: unknown
-  try {
-    body = await req.json()
-  } catch {
-    body = null
-  }
+  const { event, session }: { event?: 'SIGNED_IN' | 'TOKEN_REFRESHED' | 'SIGNED_OUT', session?: Session } =
+    await req.json().catch(() => ({}))
 
-  const { event, session } = (body ?? {}) as {
-    event?: AllowedEvent
-    session?: Session | null
-  }
-
-  // Prepare the response we'll attach Set-Cookie headers to
+  // We'll set cookies on THIS response so they actually reach the browser.
   const res = NextResponse.json({ ok: true })
+
+  // We still read incoming cookies from the request:
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookieOptions: cookieDefaults,
       cookies: {
         getAll() {
           return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           for (const { name, value, options } of cookiesToSet) {
-            res.cookies.set(name, value, { ...cookieDefaults, ...options })
+            res.cookies.set(name, value, options)
           }
         },
       },
@@ -66,7 +53,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: false, reason: 'invalid_event' })
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e)
-    return NextResponse.json({ ok: false, reason: 'exception', error: message })
+    return NextResponse.json({ ok: false, reason: 'exception', error: e instanceof Error ? e.message : String(e) })
   }
 }
