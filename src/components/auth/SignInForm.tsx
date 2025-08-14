@@ -8,19 +8,98 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
+// --- Helper: sync server cookies then wait until the server sees the session ---
 async function syncCookieAndWait(session: Session) {
   await fetch('/auth/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ event: 'SIGNED_IN' as const, session }),
   })
+
+  // Poll server until it reports a user (prevents redirect loops)
   for (let i = 0; i < 20; i++) {
     const w = await fetch('/auth/whoami', { cache: 'no-store' })
-    const j: unknown = await w.json().catch(() => ({}))
+    const j = await w.json().catch(() => ({}))
     if ((j as { user?: unknown })?.user) return true
     await new Promise((res) => setTimeout(res, 100))
   }
   return false
+}
+
+// --- Sample note content (Markdown) ---
+const SAMPLE_NOTE_TITLE = 'Sample Note — Start Here'
+const SAMPLE_NOTE_BODY = `# Welcome to Stratella ✨
+
+This is your personal space for notes **and** tasks.
+Write in plain text or [Markdown](#markdown-guide) — Stratella will **automatically** collect all your open tasks into your **Tasks** view.
+
+---
+
+## ✅ How Tasks Work
+
+- Tasks are just checklist items in your notes.
+- To add a task, start a line with:
+\\\`\\\`\\\`
+- [ ] Your task description
+\\\`\\\`\\\`
+- Example:
+  - [ ] Write my first note
+  - [ ] Add three tasks
+
+When you **check a task** in any note, it will disappear from **Tasks** (because it's complete).
+
+---
+
+## 📄 Markdown Guide <a id="markdown-guide"></a>
+
+Markdown is a simple formatting language. Here are a few basics:
+
+- **Bold text** → \`**bold**\`
+- _Italic text_ → \`*italic*\`
+- Headings:
+\\\`\\\`\\\`
+# Heading 1
+## Heading 2
+### Heading 3
+\\\`\\\`\\\`
+- Lists:
+\\\`\\\`\\\`
+- Item one
+- Item two
+\\\`\\\`\\\`
+- Links: [Link text](https://example.com)
+
+---
+
+💡 **Pro tip:** You can mix notes and tasks however you like — Stratella will keep your task list organized automatically.
+`
+
+// --- Helper: ensure a user's first note exists (idempotent) ---
+async function ensureStarterNote(userId: string) {
+  // Check if user already has any notes
+  const { count, error: countErr } = await supabaseClient
+    .from('notes')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+
+  if (countErr) {
+    // Non-fatal; just skip creating the sample note
+    console.error('count notes error', countErr)
+    return
+  }
+
+  if ((count ?? 0) > 0) return
+
+  const { error: insertErr } = await supabaseClient.from('notes').insert({
+    user_id: userId,
+    title: SAMPLE_NOTE_TITLE,
+    body: SAMPLE_NOTE_BODY,
+  })
+
+  if (insertErr) {
+    // Also non-fatal; the app still works if this fails
+    console.error('insert sample note error', insertErr)
+  }
 }
 
 export default function SignInForm() {
@@ -32,54 +111,62 @@ export default function SignInForm() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-async function onSubmit(e: FormEvent) {
-  e.preventDefault()
-  setErr(null)
-  setMsg(null)
-  setLoading(true)
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    setErr(null)
+    setMsg(null)
+    setLoading(true)
 
-  try {
-    if (mode === 'sign_in') {
-      const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      const { data } = await supabaseClient.auth.getSession()
-      if (data.session) {
-        await syncCookieAndWait(data.session)
-        router.replace('/notes')
-      } else {
-        setMsg('Signed in, but no session returned. Try refreshing.')
-      }
-    } else {
-      const { data, error } = await supabaseClient.auth.signUp({ email, password })
-      if (error) throw error
+    try {
+      if (mode === 'sign_in') {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
+        if (error) throw error
 
-      if (data.session) {
-        // Email confirmations OFF → sign in immediately
-        await syncCookieAndWait(data.session)
-        router.replace('/notes')
+        const { data } = await supabaseClient.auth.getSession()
+        if (data.session) {
+          await syncCookieAndWait(data.session)
+          await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
+          // Create starter note on FIRST successful sign-in if needed
+          await ensureStarterNote(data.session.user.id)
+          router.replace('/notes')
+        } else {
+          setMsg('Signed in, but no session returned. Try refreshing.')
+        }
       } else {
-        // Email confirmations ON → no session, show confirmation message
-        setMsg('Check your email to confirm your account, then sign in.')
+        // SIGN UP
+        const { data, error } = await supabaseClient.auth.signUp({ email, password })
+        if (error) throw error
+
+        if (data.session) {
+          // Email confirmations OFF → we already have a session
+          await syncCookieAndWait(data.session)
+          await ensureStarterNote(data.session.user.id)
+          router.replace('/notes')
+        } else {
+          // Email confirmations ON → no session yet.
+          // We cannot create the note until the user confirms & signs in the first time.
+          setMsg('Check your email to confirm your account, then sign in.')
+        }
       }
+    } catch (e) {
+      if (e instanceof Error) setErr(e.message)
+      else setErr('Something went wrong')
+    } finally {
+      setLoading(false)
     }
-  } catch (e: unknown) {
-    setErr(e instanceof Error ? e.message : 'Something went wrong')
-  } finally {
-    setLoading(false)
   }
-}
 
-
-
-
-  
   async function onForgot() {
-    setErr(null); setMsg(null)
-    if (!email) return setErr('Enter your email above first.')
+    setErr(null)
+    setMsg(null)
+    if (!email) {
+      setErr('Enter your email above first.')
+      return
+    }
     const redirectTo = `${window.location.origin}/login`
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo })
     if (error) setErr(error.message)
-    else setMsg('Reset email sent—check your inbox.')
+    else setMsg('Reset email sent — check your inbox.')
   }
 
   return (
@@ -111,11 +198,21 @@ async function onSubmit(e: FormEvent) {
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? (mode === 'sign_in' ? 'Signing in…' : 'Creating account…') : (mode === 'sign_in' ? 'Sign in' : 'Create account')}
+        {loading
+          ? mode === 'sign_in'
+            ? 'Signing in…'
+            : 'Creating account…'
+          : mode === 'sign_in'
+            ? 'Sign in'
+            : 'Create account'}
       </Button>
 
       <div className="text-center text-sm">
-        <button type="button" onClick={onForgot} className="underline underline-offset-4 hover:text-primary">
+        <button
+          type="button"
+          onClick={onForgot}
+          className="underline underline-offset-4 hover:text-primary"
+        >
           Forgot your password?
         </button>
       </div>
@@ -124,14 +221,22 @@ async function onSubmit(e: FormEvent) {
         {mode === 'sign_in' ? (
           <>
             Don&apos;t have an account?{' '}
-            <button type="button" onClick={() => setMode('sign_up')} className="underline underline-offset-4 hover:text-primary">
+            <button
+              type="button"
+              onClick={() => setMode('sign_up')}
+              className="underline underline-offset-4 hover:text-primary"
+            >
               Sign up
             </button>
           </>
         ) : (
           <>
             Already have an account?{' '}
-            <button type="button" onClick={() => setMode('sign_in')} className="underline underline-offset-4 hover:text-primary">
+            <button
+              type="button"
+              onClick={() => setMode('sign_in')}
+              className="underline underline-offset-4 hover:text-primary"
+            >
               Sign in
             </button>
           </>

@@ -35,6 +35,7 @@ export default function LoginCard() {
       if (!mounted) return
       if (data.session) {
         await syncCookieAndWait(data.session)
+        await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
         router.replace('/notes')
       }
     })
@@ -42,6 +43,7 @@ export default function LoginCard() {
     const { data: sub } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         await syncCookieAndWait(session)
+        await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
         router.replace('/notes')
       }
     })

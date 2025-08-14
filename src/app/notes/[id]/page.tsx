@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import Markdown from '@/components/Markdown'
+
 
 export default async function NotePage({
   params,
@@ -52,7 +54,7 @@ export default async function NotePage({
           <Textarea name="body" defaultValue={note.body} className="min-h-[60vh]" />
           <Card>
             <CardContent className="p-4 prose prose-sm max-w-none">
-              <MarkdownPreview>{note.body}</MarkdownPreview>
+              <Markdown source={note.body} />
             </CardContent>
           </Card>
         </div>
