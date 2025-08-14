@@ -54,7 +54,7 @@ export default async function NotePage({
           <Textarea name="body" defaultValue={note.body} className="min-h-[60vh]" />
           <Card>
             <CardContent className="p-4 prose prose-sm max-w-none">
-              <Markdown source={note.body} />
+              <Markdown>{note.body}</Markdown>
             </CardContent>
           </Card>
         </div>

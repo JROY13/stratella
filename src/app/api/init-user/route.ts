@@ -22,12 +22,15 @@ Click a task’s checkbox in **Tasks** to mark it done in the original note.
 
 ## Quick Markdown cheatsheet
 
-- \`#\` Heading 1, \`##\` Heading 2, etc.
-- **bold**, *italic*, \`inline code\`
-- Lists:
-  - \`- item\`
-  - \`1. item\`
-- Links: \`[text](https://example.com)\`
+# Heading 1
+## Heading 2, etc.
+**bold**, *italic*
+
+Lists:
+- item
+1. item
+
+Links: [text](https://example.com)
 
 Have fun!
 `

@@ -1,4 +1,3 @@
-// src/components/Markdown.tsx
 'use client'
 
 import React from 'react'
@@ -15,39 +14,90 @@ type InputProps = React.DetailedHTMLProps<
   HTMLInputElement
 >
 
-export function MarkdownPreview({ source }: { source: string }) {
+/** Turn Notion-style "[ ] Task" / "[x] Task" at line-start into GFM "- [ ] Task" / "- [x] Task". */
+function normalizeTasks(md: string) {
+  return md
+    .split('\n')
+    .map((line) => {
+      // Skip inside fenced code blocks
+      // (very light heuristic: if a line starts with triple backticks, flip state)
+      return line
+    })
+    .join('\n')
+}
+
+export default function Markdown({ children }: { children: string }) {
+  // Proper normalize with code fences handled
+  const lines = children.split('\n')
+  let inFence = false
+  const normalized = lines
+    .map((line) => {
+      if (line.trim().startsWith('```')) {
+        inFence = !inFence
+        return line
+      }
+      if (inFence) return line
+      // Convert "[ ] foo" to "- [ ] foo" and "[x] foo" to "- [x] foo" at line start (allow leading spaces)
+      const m = line.match(/^(\s*)\[( |x|X)\]\s+(.*)$/)
+      if (m) {
+        const [, indent, mark, rest] = m
+        const box = mark.toLowerCase() === 'x' ? '[x]' : '[ ]'
+        return `${indent}- ${box} ${rest}`
+      }
+      return line
+    })
+  .join('\n')
+
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
       <ReactMarkdown
-        // GFM gives you task lists, tables, strikethrough, etc.
         remarkPlugins={[remarkGfm]}
         components={{
-          // Render task-list checkboxes as read-only so they don’t flip on click
+          ul: ({ ...props }) => <ul {...props} className="list-disc pl-6 my-1" />,
+          ol: ({ ...props }) => <ol {...props} className="list-decimal pl-6 my-1" />,
+
+          // Remove bullets for task items; align checkbox + text
+          li: ({ children, ...props }) => {
+            const hasCheckbox = React.Children.toArray(children).some(
+              (child) =>
+                React.isValidElement(child) &&
+                child.type === 'input' &&
+                (child.props as { type?: string }).type === 'checkbox'
+            )
+            return (
+              <li
+                {...props}
+                className={`${(props as { className?: string }).className ?? ''} ${
+                  hasCheckbox ? 'list-none' : ''
+                } flex items-center gap-2 my-0.5`}
+              >
+                {children}
+              </li>
+            )
+          },
+
+          // Read-only checkboxes in preview
           input: (props: InputProps) => {
             if (props.type === 'checkbox') {
-              // visually nicer checkbox for previews
               const { className, ...rest } = props
               return (
                 <input
                   {...rest}
                   readOnly
-                  className={
-                    (className ?? '') +
-                    ' h-4 w-4 align-middle rounded border border-muted-foreground/40'
-                  }
+                  className={`h-4 w-4 align-middle rounded border border-muted-foreground/40 ${className ?? ''}`}
                 />
               )
             }
-            return <input {...props} />
+            return <input {...props} readOnly />
           },
 
-          // Syntax-friendly inline vs block code (typed so `inline` is allowed)
+          // Inline vs block code (typed so `inline` is OK)
           code: ({ inline, className, children, ...props }: CodeProps) => {
             if (inline) {
               return (
                 <code
                   {...props}
-                  className={(className ?? '') + ' rounded bg-muted px-1 py-0.5'}
+                  className={`rounded bg-muted px-1 py-0.5 ${className ?? ''}`}
                 >
                   {children}
                 </code>
@@ -61,13 +111,13 @@ export function MarkdownPreview({ source }: { source: string }) {
               </pre>
             )
           },
+
+          h1: ({ ...props }) => <h1 {...props} className="mt-5 mb-3 text-3xl font-semibold" />,
+          h2: ({ ...props }) => <h2 {...props} className="mt-4 mb-2 text-2xl font-semibold" />,
         }}
       >
-        {source}
+        {normalized}
       </ReactMarkdown>
     </div>
   )
 }
-
-// Optional default export if you’re importing as default elsewhere
-export default MarkdownPreview

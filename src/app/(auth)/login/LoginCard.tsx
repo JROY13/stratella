@@ -65,7 +65,7 @@ export default function LoginCard() {
           All your tasks. From every note. In one place.
         </h1>
         <p className="text-muted-foreground">
-          Stop hunting through docs. Write in Markdown—your open tasks auto-collect into a single <em>Task List</em>.
+          Stop hunting through docs for tasks—your checkboxes auto-collect into a single <em>Task List</em>.
           Coming soon: AI summaries that brief you before every session.
         </p>
       </div>
