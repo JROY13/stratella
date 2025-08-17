@@ -75,7 +75,7 @@ Markdown is a simple formatting language. Here are a few basics:
 `
 
 // --- Helper: ensure a user's first note exists (idempotent) ---
-async function ensureStarterNote(userId: string) {
+export async function ensureStarterNote(userId: string) {
   // Check if user already has any notes
   const { count, error: countErr } = await supabaseClient
     .from('notes')
@@ -125,7 +125,6 @@ export default function SignInForm() {
         const { data } = await supabaseClient.auth.getSession()
         if (data.session) {
           await syncCookieAndWait(data.session)
-          await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
           // Create starter note on FIRST successful sign-in if needed
           await ensureStarterNote(data.session.user.id)
           router.replace('/notes')

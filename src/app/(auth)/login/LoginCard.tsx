@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { supabaseClient } from '@/lib/supabase-client'
-import SignInForm from '@/components/auth/SignInForm'
+import SignInForm, { ensureStarterNote } from '@/components/auth/SignInForm'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -35,7 +35,7 @@ export default function LoginCard() {
       if (!mounted) return
       if (data.session) {
         await syncCookieAndWait(data.session)
-        await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
+        await ensureStarterNote(data.session.user.id)
         router.replace('/notes')
       }
     })
@@ -43,7 +43,7 @@ export default function LoginCard() {
     const { data: sub } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         await syncCookieAndWait(session)
-        await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
+        await ensureStarterNote(session.user.id)
         router.replace('/notes')
       }
     })
