@@ -7,19 +7,33 @@ export type TaskHit = {
   end: number
 }
 
-const TASK_RE = /^\s*(?:[-*+]|\d+\.)\s+\[( |x|X)\]\s+(.*)$/gm
+const TASK_RE = /^\s*(?:[-*+]|\d+\.)\s+\[( |x|X)\]\s+(.*)$/
 
 export function extractTasks(md: string): TaskHit[] {
   const out: TaskHit[] = []
-  let m: RegExpExecArray | null
-  while ((m = TASK_RE.exec(md))) {
-    const whole = m[0]
-    const checked = m[1].toLowerCase() === 'x'
-    const text = m[2]
-    const start = m.index
-    const end = start + whole.length
-    const line = md.slice(0, start).split('\n').length - 1
-    out.push({ text, checked, line, start, end })
+  const lines = md.split('\n')
+  let inFence = false
+  let index = 0
+
+  for (let lineNo = 0; lineNo < lines.length; lineNo++) {
+    const line = lines[lineNo]
+    const trimmed = line.trim()
+    if (trimmed.startsWith('```')) {
+      inFence = !inFence
+    }
+    if (!inFence) {
+      const m = TASK_RE.exec(line)
+      if (m) {
+        const whole = m[0]
+        const checked = m[1].toLowerCase() === 'x'
+        const text = m[2]
+        const start = index + line.indexOf(whole)
+        const end = start + whole.length
+        out.push({ text, checked, line: lineNo, start, end })
+      }
+    }
+    index += line.length + 1
+    TASK_RE.lastIndex = 0
   }
   return out
 }
