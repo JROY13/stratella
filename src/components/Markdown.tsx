@@ -4,6 +4,7 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { normalizeTasks } from '@/lib/markdown'
+import { toggleTaskFromNote } from '@/app/actions'
 
 type CodeProps =
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
@@ -15,9 +16,10 @@ type InputProps = React.DetailedHTMLProps<
   HTMLInputElement
 >
 
-export default function Markdown({ children }: { children: string }) {
+export default function Markdown({ children, noteId }: { children: string; noteId: string }) {
   // Normalize task markers outside fenced code blocks
   const normalized = normalizeTasks(children)
+  const [, startTransition] = React.useTransition()
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
@@ -53,15 +55,23 @@ export default function Markdown({ children }: { children: string }) {
             )
           },
 
-          // Read-only checkboxes in preview
+          // Checkboxes that toggle tasks via server action
           input: (props: InputProps) => {
             if (props.type === 'checkbox') {
-              const { className, ...rest } = props
+              const { className, disabled, ...rest } = props
+              void disabled
               return (
                 <input
                   {...rest}
-                  readOnly
+                  disabled={false}
                   className={`h-4 w-4 align-middle rounded border border-muted-foreground/40 ${className ?? ''}`}
+                  onClick={e => {
+                    e.preventDefault()
+                    const lineAttr = e.currentTarget.closest('li')?.getAttribute('data-line')
+                    if (!lineAttr) return
+                    const line = parseInt(lineAttr, 10) - 1
+                    startTransition(() => toggleTaskFromNote(noteId, line))
+                  }}
                 />
               )
             }
