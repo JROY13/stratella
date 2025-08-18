@@ -6,8 +6,6 @@ import SignInForm from '@/components/auth/SignInForm'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { syncCookieAndWait } from '@/lib/auth-sync'
-import type { Session } from '@supabase/supabase-js'
 
 export default function LoginCard() {
   const router = useRouter()
@@ -17,10 +15,9 @@ export default function LoginCard() {
 
     supabaseClient.auth
       .getSession()
-      .then(async ({ data: { session } }: { data: { session: Session | null } }) => {
+      .then(async ({ data: { session } }) => {
         if (!mounted) return
         if (session) {
-          await syncCookieAndWait(session)
           await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
             console.error('init-user error', err)
           )
@@ -28,9 +25,10 @@ export default function LoginCard() {
         }
       })
 
-    const { data: sub } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        await syncCookieAndWait(session)
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange(async (event) => {
+      if (event === 'SIGNED_IN') {
         await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
           console.error('init-user error', err)
         )
@@ -40,7 +38,7 @@ export default function LoginCard() {
 
     return () => {
       mounted = false
-      sub.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
   }, [router])
 
