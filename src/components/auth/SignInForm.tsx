@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabaseClient } from '@/lib/supabase-client'
 import { Input } from '@/components/ui/input'
@@ -105,6 +105,10 @@ export default function SignInForm() {
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    setConfirmPassword('')
+  }, [mode])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
