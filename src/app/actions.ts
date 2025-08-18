@@ -32,7 +32,7 @@ export async function deleteNote(id: string) {
   revalidatePath('/notes')
 }
 
-export async function toggleTaskFromPinned(noteId: string, taskLine: number) {
+async function toggleTask(noteId: string, taskLine: number) {
   const { supabase, user } = await requireUser()
   const { data } = await supabase
     .from('notes')
@@ -53,7 +53,11 @@ export async function toggleTaskFromPinned(noteId: string, taskLine: number) {
     .update({ body: nextBody })
     .eq('id', noteId)
     .eq('user_id', user.id)
+}
 
+export async function toggleTaskFromNote(noteId: string, taskLine: number) {
+  await toggleTask(noteId, taskLine)
   revalidatePath('/notes')
   revalidatePath(`/notes/${noteId}`)
+  revalidatePath('/tasks')
 }
