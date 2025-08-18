@@ -6,7 +6,7 @@ import { supabaseClient } from '@/lib/supabase-client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { syncCookieAndWait } from '@/lib/auth-sync'
+import { z } from 'zod'
 
 
 export default function SignInForm() {
@@ -14,6 +14,7 @@ export default function SignInForm() {
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -25,39 +26,42 @@ export default function SignInForm() {
     setLoading(true)
 
     try {
-      if (mode === 'sign_in') {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
-        if (error) throw error
+        if (mode === 'sign_in') {
+          const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
+          if (error) throw error
 
-        const { data } = await supabaseClient.auth.getSession()
-        if (data.session) {
-          await syncCookieAndWait(data.session)
-          // Initialize user data on first sign-in
           await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
             console.error('init-user error', err)
           )
           router.replace('/notes')
         } else {
-          setMsg('Signed in, but no session returned. Try refreshing.')
-        }
-      } else {
-        // SIGN UP
-        const { data, error } = await supabaseClient.auth.signUp({ email, password })
-        if (error) throw error
+          const schema = z
+            .object({
+              password: z.string().min(8, 'Password must be at least 8 characters'),
+              confirm: z.string(),
+            })
+            .refine((v) => v.password === v.confirm, {
+              path: ['confirm'],
+              message: 'Passwords do not match',
+            })
+          const parsed = schema.safeParse({ password, confirm })
+          if (!parsed.success) {
+            setErr(parsed.error.issues[0].message)
+            return
+          }
 
-        if (data.session) {
-          // Email confirmations OFF → we already have a session
-          await syncCookieAndWait(data.session)
-          await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
-            console.error('init-user error', err)
-          )
-          router.replace('/notes')
-        } else {
-          // Email confirmations ON → no session yet.
-          // We cannot create the note until the user confirms & signs in the first time.
-          setMsg('Check your email to confirm your account, then sign in.')
+          const { data, error } = await supabaseClient.auth.signUp({ email, password })
+          if (error) throw error
+
+          if (data.session) {
+            await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
+              console.error('init-user error', err)
+            )
+            router.replace('/notes')
+          } else {
+            setMsg('Check your email to confirm your account, then sign in.')
+          }
         }
-      }
     } catch (e) {
       if (e instanceof Error) setErr(e.message)
       else setErr('Something went wrong')
@@ -94,18 +98,33 @@ export default function SignInForm() {
         />
       </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="password">{mode === 'sign_in' ? 'Password' : 'Create a password'}</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete={mode === 'sign_in' ? 'current-password' : 'new-password'}
-          required
-        />
-      </div>
+        <div className="grid gap-2">
+          <Label htmlFor="password">{mode === 'sign_in' ? 'Password' : 'Create a password'}</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === 'sign_in' ? 'current-password' : 'new-password'}
+            required
+          />
+        </div>
+
+        {mode === 'sign_up' && (
+          <div className="grid gap-2">
+            <Label htmlFor="confirm">Confirm password</Label>
+            <Input
+              id="confirm"
+              type="password"
+              placeholder="••••••••"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+        )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading

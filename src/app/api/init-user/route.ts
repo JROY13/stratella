@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +17,7 @@ Write tasks anywhere in your notes using Markdown checkboxes:
 - [x] This is a completed task
 - [ ] Add three tasks to this note
 
-Only **unchecked** tasks appear under the **Tasks** view, grouped by the note they live in.  
+Only **unchecked** tasks appear under the **Tasks** view, grouped by the note they live in.
 Click a task’s checkbox in **Tasks** to mark it done in the original note.
 
 ## Quick Markdown cheat sheet
@@ -36,37 +36,14 @@ Have fun!
 `
 
 export async function POST() {
-  // We’ll return *this* response so any cookies written by Supabase land in the browser if needed
-  const res = NextResponse.json({ ok: true })
-  const cookieStore = await cookies()
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        // Read incoming cookies for auth
-        getAll() {
-          return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
-        },
-        // Write any updated cookies to the *response* (usually none for read ops, but safe)
-        setAll(cookiesToSet) {
-          for (const { name, value, options } of cookiesToSet) {
-            res.cookies.set(name, value, options)
-          }
-        },
-      },
-    }
-  )
+  const supabase = createRouteHandlerClient({ cookies })
 
   try {
-    // Must be signed in
     const { data: { user }, error: userErr } = await supabase.auth.getUser()
     if (userErr || !user) {
       return NextResponse.json({ ok: false, reason: 'no_user' }, { status: 401 })
     }
 
-    // Only create if user currently has *zero* notes
     const { count, error: countErr } = await supabase
       .from('notes')
       .select('*', { count: 'exact', head: true })
@@ -76,7 +53,7 @@ export async function POST() {
       console.error('count notes error', countErr)
       return NextResponse.json(
         { ok: false, reason: 'count_error', error: countErr.message },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -90,12 +67,12 @@ export async function POST() {
         console.error('insert sample note error', insertErr)
         return NextResponse.json(
           { ok: false, reason: 'insert_error', error: insertErr.message },
-          { status: 500 }
+          { status: 500 },
         )
       }
     }
 
-    return res
+    return NextResponse.json({ ok: true })
   } catch (e) {
     console.error('init-user unexpected error', e)
     return NextResponse.json({ ok: false, reason: 'unexpected_error' }, { status: 500 })

@@ -18,7 +18,7 @@ export default async function NotePage({
 }) {
   // ✅ Next 15: await params first
   const { id } = await params
-  const supabase = await supabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

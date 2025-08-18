@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export default async function NotesPage() {
-  const supabase = await supabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

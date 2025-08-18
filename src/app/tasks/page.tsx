@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 export default async function TasksPage() {
-  const supabase = await supabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

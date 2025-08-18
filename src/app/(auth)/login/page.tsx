@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import LoginCard from '@/app/(auth)/login/LoginCard'
 
 export default async function LoginPage() {
-  const supabase = await supabaseServer()
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/notes')
   return <LoginCard />

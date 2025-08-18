@@ -5,7 +5,7 @@ import { extractTasks, toggleTaskInMarkdown } from '@/lib/taskparse'
 import { revalidatePath } from 'next/cache'
 
 export async function requireUser() {
-  const supabase = await supabaseServer() // <-- await here
+  const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not signed in')
   return { supabase, user }
