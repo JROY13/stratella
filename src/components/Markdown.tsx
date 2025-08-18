@@ -27,20 +27,26 @@ export default function Markdown({ children }: { children: string }) {
           ul: ({ ...props }) => <ul {...props} className="list-disc pl-6 my-1" />,
           ol: ({ ...props }) => <ol {...props} className="list-decimal pl-6 my-1" />,
 
-          // Remove bullets for task items; align checkbox + text
-          li: ({ children, ...props }) => {
+          // Remove bullets for task items; align checkbox + text and expose line numbers
+          li: ({ children, node, ...props }) => {
             const hasCheckbox = React.Children.toArray(children).some(
               (child) =>
                 React.isValidElement(child) &&
                 child.type === 'input' &&
                 (child.props as { type?: string }).type === 'checkbox'
             )
+              const line = (node as { position?: { start?: { line?: number } } })
+                ?.position?.start?.line
+              const className = `${(props as { className?: string }).className ?? ''} ${
+                hasCheckbox ? 'list-none' : ''
+              } flex items-center gap-2 my-0.5 target:bg-accent/30`;
+
             return (
               <li
                 {...props}
-                className={`${(props as { className?: string }).className ?? ''} ${
-                  hasCheckbox ? 'list-none' : ''
-                } flex items-center gap-2 my-0.5`}
+                id={line ? `L${line}` : undefined}
+                data-line={line}
+                className={className}
               >
                 {children}
               </li>

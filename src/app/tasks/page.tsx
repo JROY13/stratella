@@ -50,8 +50,8 @@ export default async function TasksPage() {
                     {group.tasks.map(t => (
                       <li key={t.line} className="flex items-center gap-2">
                         <form action={toggleTaskFromPinned.bind(null, group.id, t.line)}>
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             title="Mark done"
                             aria-label="Mark done"
                             className="group inline-flex h-5 w-5 items-center justify-center rounded border border-input bg-transparent
@@ -69,10 +69,12 @@ export default async function TasksPage() {
                               strokeLinejoin="round"
                             >
                               <path d="M4 10l3 3 9-9" />
-                            </svg>                     
+                            </svg>
                           </Button>
                         </form>
-                        <span>{t.text}</span>
+                        <Link href={`/notes/${group.id}#L${t.line + 1}`} className="hover:underline">
+                          {t.text}
+                        </Link>
                       </li>
                     ))}
                   </ul>
