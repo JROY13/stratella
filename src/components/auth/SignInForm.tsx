@@ -202,7 +202,7 @@ export default function SignInForm() {
 
       {mode === 'sign_up' && (
         <div className="grid gap-2">
-          <Label htmlFor="confirm-password">Confirm password</Label>
+          <Label htmlFor="confirm-password">Confirm Password</Label>
           <Input
             id="confirm-password"
             type="password"
