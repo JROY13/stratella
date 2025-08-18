@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractTasks, toggleTaskInMarkdown } from './taskparse'
+import { extractTasks, toggleTaskInMarkdown, filterTasks, TaskWithNote } from './taskparse'
 
 describe('extractTasks', () => {
   it('finds checked and unchecked tasks', () => {
@@ -45,6 +45,15 @@ describe('extractTasks', () => {
     ].join('\n')
     expect(extractTasks(md)).toHaveLength(1)
   })
+
+  it('parses inline metadata', () => {
+    const md = '- [ ] task due:2024-07-01 tag:home #work status:waiting'
+    const [hit] = extractTasks(md)
+    expect(hit.due).toBe('2024-07-01')
+    expect(hit.tags.sort()).toEqual(['home', 'work'])
+    expect(hit.status).toBe('waiting')
+    expect(hit.text).toBe('task')
+  })
 })
 
 describe('toggleTaskInMarkdown', () => {
@@ -60,5 +69,28 @@ describe('toggleTaskInMarkdown', () => {
     expect(toggledOffLower.split('\n')).toEqual(['- [ ] a', '- [X] b', '- [ ] c'])
     const toggledBackLower = toggleTaskInMarkdown(toggledOffLower, { ...hits[2], checked: false })
     expect(toggledBackLower.split('\n')).toEqual(['- [ ] a', '- [X] b', '- [x] c'])
+  })
+})
+
+describe('filterTasks', () => {
+  const tasks: TaskWithNote[] = [
+    { text: 'a', checked: false, line: 0, start: 0, end: 0, mark: ' ', tags: ['work'], noteId: '1', due: '2024-07-01' },
+    { text: 'b', checked: true, line: 1, start: 0, end: 0, mark: 'x', tags: ['home'], noteId: '1', due: '2024-07-02' },
+    { text: 'c', checked: false, line: 2, start: 0, end: 0, mark: ' ', tags: ['work'], noteId: '2', due: '2024-07-02' },
+  ]
+
+  it('filters by status', () => {
+    const res = filterTasks(tasks, { status: 'open' })
+    expect(res.map(t => t.text)).toEqual(['a', 'c'])
+  })
+
+  it('filters by tag and due date', () => {
+    const res = filterTasks(tasks, { tag: 'work', due: '2024-07-02' })
+    expect(res.map(t => t.text)).toEqual(['c'])
+  })
+
+  it('sorts by due date', () => {
+    const res = filterTasks(tasks, { sort: 'due' })
+    expect(res.map(t => t.text)).toEqual(['a', 'b', 'c'])
   })
 })
