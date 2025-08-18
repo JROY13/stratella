@@ -61,8 +61,12 @@ export async function POST() {
 
   try {
     // Must be signed in
-    const { data: { user }, error: userErr } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userErr,
+    } = await supabase.auth.getUser()
     if (userErr || !user) {
+      if (userErr) console.error('get user error', userErr)
       return NextResponse.json({ ok: false, reason: 'no_user' }, { status: 401 })
     }
 
@@ -86,7 +90,7 @@ export async function POST() {
         title: SAMPLE_TITLE,
         body: SAMPLE_BODY,
       })
-      if (insertErr) {
+      if (insertErr && insertErr.code !== '23505') {
         console.error('insert sample note error', insertErr)
         return NextResponse.json(
           { ok: false, reason: 'insert_error', error: insertErr.message },
