@@ -14,6 +14,13 @@ describe('extractTasks', () => {
     expect(hits.map(h => h.text)).toEqual(['todo', 'done', 'done upper'])
   })
 
+  it('finds checked and unchecked tasks', () => {
+    const md = '- [ ] todo\n- [x] done\n- [X] DONE'
+    const hits = extractTasks(md)
+    expect(hits).toHaveLength(3)
+    expect(hits.map(h => h.checked)).toEqual([false, true, true])
+  })
+
   it('ignores tasks inside code fences', () => {
     const md = [
       '- [ ] outside',
@@ -26,6 +33,11 @@ describe('extractTasks', () => {
     const hits = extractTasks(md)
     expect(hits).toHaveLength(2)
     expect(hits.map(h => h.text)).toEqual(['outside', 'outside too'])
+  })
+
+  it('ignores tasks inside code fences (simple)', () => {
+    const md = '```\n- [ ] ignored\n```\n- [ ] real task'
+    expect(extractTasks(md)).toHaveLength(1)
   })
 })
 
@@ -62,3 +74,4 @@ describe('toggleTaskInMarkdown', () => {
     expect(checked).toMatch(/\[x\] todo/)
   })
 })
+

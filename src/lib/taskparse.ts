@@ -41,9 +41,10 @@ export function extractTasks(md: string): TaskHit[] {
 export function toggleTaskInMarkdown(md: string, hit: TaskHit) {
   const before = md.slice(0, hit.start)
   const target = md.slice(hit.start, hit.end)
-  const after  = md.slice(hit.end)
+  const after = md.slice(hit.end)
   const toggled = hit.checked
     ? target.replace(`[${hit.marker}]`, '[ ]')
     : target.replace('[ ]', `[${hit.marker === 'X' ? 'X' : 'x'}]`)
   return before + toggled + after
 }
+
