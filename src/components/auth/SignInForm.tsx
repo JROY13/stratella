@@ -6,7 +6,6 @@ import { supabaseClient } from '@/lib/supabase-client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { syncCookieAndWait } from '@/lib/auth-sync'
 
 
 export default function SignInForm() {
@@ -31,7 +30,6 @@ export default function SignInForm() {
 
         const { data } = await supabaseClient.auth.getSession()
         if (data.session) {
-          await syncCookieAndWait(data.session)
           // Initialize user data on first sign-in
           await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
             console.error('init-user error', err)
@@ -47,7 +45,6 @@ export default function SignInForm() {
 
         if (data.session) {
           // Email confirmations OFF → we already have a session
-          await syncCookieAndWait(data.session)
           await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
             console.error('init-user error', err)
           )

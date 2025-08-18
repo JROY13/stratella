@@ -1,31 +1,10 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 /**
- * Read-only Supabase client for Server Components.
- * We read cookies here, but DO NOT write them.
- * Cookie writes happen in /auth/refresh (Route Handler) or in Server Actions.
+ * Supabase client for Server Components and Server Actions.
+ * Auth cookies are managed automatically by @supabase/auth-helpers-nextjs.
  */
-export async function supabaseServer() {
-  const cookieStore = await cookies()
-
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        // RSC: allowed to read
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        // RSC: not allowed to write — leave as no-op
-        set() {
-          /* no-op on purpose */
-        },
-        remove() {
-          /* no-op on purpose */
-        },
-      },
-    }
-  )
+export function supabaseServer() {
+  return createServerComponentClient({ cookies })
 }

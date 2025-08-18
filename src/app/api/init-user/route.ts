@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,28 +36,7 @@ Have fun!
 `
 
 export async function POST() {
-  // We’ll return *this* response so any cookies written by Supabase land in the browser if needed
-  const res = NextResponse.json({ ok: true })
-  const cookieStore = await cookies()
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        // Read incoming cookies for auth
-        getAll() {
-          return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
-        },
-        // Write any updated cookies to the *response* (usually none for read ops, but safe)
-        setAll(cookiesToSet) {
-          for (const { name, value, options } of cookiesToSet) {
-            res.cookies.set(name, value, options)
-          }
-        },
-      },
-    }
-  )
+  const supabase = createRouteHandlerClient({ cookies })
 
   try {
     // Must be signed in
@@ -95,7 +74,7 @@ export async function POST() {
       }
     }
 
-    return res
+    return NextResponse.json({ ok: true })
   } catch (e) {
     console.error('init-user unexpected error', e)
     return NextResponse.json({ ok: false, reason: 'unexpected_error' }, { status: 500 })
