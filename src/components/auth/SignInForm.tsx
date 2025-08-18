@@ -6,83 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
-
-// --- Sample note content (Markdown) ---
-const SAMPLE_NOTE_TITLE = 'Sample Note — Start Here'
-const SAMPLE_NOTE_BODY = `# Welcome to Stratella ✨
-
-This is your personal space for notes **and** tasks.
-Write in plain text or [Markdown](#markdown-guide) — Stratella will **automatically** collect all your open tasks into your **Tasks** view.
-
----
-
-## ✅ How Tasks Work
-
-- Tasks are just checklist items in your notes.
-- To add a task, start a line with:
-\\\`\\\`\\\`
-- [ ] Your task description
-\\\`\\\`\\\`
-- Example:
-  - [ ] Write my first note
-  - [ ] Add three tasks
-
-When you **check a task** in any note, it will disappear from **Tasks** (because it's complete).
-
----
-
-## 📄 Markdown Guide <a id="markdown-guide"></a>
-
-Markdown is a simple formatting language. Here are a few basics:
-
-- **Bold text** → \`**bold**\`
-- _Italic text_ → \`*italic*\`
-- Headings:
-\\\`\\\`\\\`
-# Heading 1
-## Heading 2
-### Heading 3
-\\\`\\\`\\\`
-- Lists:
-\\\`\\\`\\\`
-- Item one
-- Item two
-\\\`\\\`\\\`
-- Links: [Link text](https://example.com)
-
----
-
-💡 **Pro tip:** You can mix notes and tasks however you like — Stratella will keep your task list organized automatically.
-`
-
-// --- Helper: ensure a user's first note exists (idempotent) ---
-export async function ensureStarterNote(userId: string) {
-  // Check if user already has any notes
-  const { count, error: countErr } = await supabaseClient
-    .from('notes')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-
-  if (countErr) {
-    // Non-fatal; just skip creating the sample note
-    console.error('count notes error', countErr)
-    return
-  }
-
-  if ((count ?? 0) > 0) return
-
-  const { error: insertErr } = await supabaseClient.from('notes').insert({
-    user_id: userId,
-    title: SAMPLE_NOTE_TITLE,
-    body: SAMPLE_NOTE_BODY,
-  })
-
-  if (insertErr) {
-    // Also non-fatal; the app still works if this fails
-    console.error('insert sample note error', insertErr)
-  }
-}
-
 export default function SignInForm() {
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in')
   const [email, setEmail] = useState('')
@@ -102,12 +25,9 @@ export default function SignInForm() {
         const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
         if (error) throw error
       } else {
-        // SIGN UP
         const { data, error } = await supabaseClient.auth.signUp({ email, password })
         if (error) throw error
-
         if (!data.session) {
-          // Email confirmations ON → no session yet.
           setMsg('Check your email to confirm your account, then sign in.')
         }
       }

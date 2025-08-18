@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { supabaseClient } from '@/lib/supabase-client'
-import SignInForm, { ensureStarterNote } from '@/components/auth/SignInForm'
+import SignInForm from '@/components/auth/SignInForm'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,17 +13,23 @@ export default function LoginCard() {
   useEffect(() => {
     let mounted = true
 
-    supabaseClient.auth.getSession().then(async ({ data }) => {
-      if (!mounted) return
-      if (data.session) {
-        await ensureStarterNote(data.session.user.id)
-        router.replace('/notes')
-      }
-    })
+    supabaseClient.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
+        if (!mounted) return
+        if (session) {
+          await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
+            console.error('init-user error', err),
+          )
+          router.replace('/notes')
+        }
+      })
 
     const { data: sub } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        await ensureStarterNote(session.user.id)
+        await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
+          console.error('init-user error', err),
+        )
         router.replace('/notes')
       }
     })
