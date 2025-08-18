@@ -58,7 +58,11 @@ export default function Markdown({ children, noteId }: { children: string; noteI
           // Checkboxes that toggle tasks via server action
           input: (props: InputProps) => {
             if (props.type === 'checkbox') {
-              const { className, ...rest } = props
+              // react-markdown marks task checkboxes as disabled; strip this so we can
+              // handle clicks client-side and toggle tasks via a server action
+              const { className, disabled: _disabled, ...rest } = props
+              // avoid lint error for intentionally unused variable
+              void _disabled
               return (
                 <input
                   {...rest}
