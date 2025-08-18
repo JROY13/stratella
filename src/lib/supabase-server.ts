@@ -15,11 +15,14 @@ export async function supabaseServer() {
     {
       cookies: {
         // RSC: allowed to read
-        getAll() {
-          return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
+        get(name: string) {
+          return cookieStore.get(name)?.value
         },
         // RSC: not allowed to write — leave as no-op
-        setAll() {
+        set() {
+          /* no-op on purpose */
+        },
+        remove() {
           /* no-op on purpose */
         },
       },
