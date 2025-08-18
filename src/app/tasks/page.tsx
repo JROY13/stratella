@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 
-export default async function TasksPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -20,7 +20,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Record
     .select('id,title,body,updated_at')
     .order('updated_at', { ascending: false })
 
-  let tasks: (TaskWithNote & { noteTitle: string })[] = []
+  const tasks: (TaskWithNote & { noteTitle: string })[] = []
   for (const n of notes ?? []) {
     const todos = extractTasks(n.body)
     tasks.push(
@@ -28,12 +28,14 @@ export default async function TasksPage({ searchParams }: { searchParams: Record
     )
   }
 
+  const params = await searchParams
+
   const filters: TaskFilters = {
-    status: typeof searchParams.status === 'string' ? searchParams.status : undefined,
-    note: typeof searchParams.note === 'string' ? searchParams.note : undefined,
-    tag: typeof searchParams.tag === 'string' ? searchParams.tag : undefined,
-    due: typeof searchParams.due === 'string' ? searchParams.due : undefined,
-    sort: typeof searchParams.sort === 'string' ? searchParams.sort : undefined,
+    status: typeof params.status === 'string' ? params.status : undefined,
+    note: typeof params.note === 'string' ? params.note : undefined,
+    tag: typeof params.tag === 'string' ? params.tag : undefined,
+    due: typeof params.due === 'string' ? params.due : undefined,
+    sort: typeof params.sort === 'string' ? params.sort : undefined,
   }
 
   const filtered = filterTasks(tasks, filters)
