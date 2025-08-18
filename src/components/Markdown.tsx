@@ -3,6 +3,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { normalizeTasks } from '@/lib/markdown'
 
 type CodeProps =
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
@@ -13,32 +14,6 @@ type InputProps = React.DetailedHTMLProps<
   React.InputHTMLAttributes<HTMLInputElement>,
   HTMLInputElement
 >
-
-/**
- * Convert leading "[ ] Task" / "[x] Task" at line-start into GFM
- * "- [ ] Task" / "- [x] Task" outside fenced code blocks.
- */
-function normalizeTasks(md: string) {
-  const lines = md.split('\n')
-  let inFence = false
-  return lines
-    .map((line) => {
-      if (line.trim().startsWith('```')) {
-        inFence = !inFence
-        return line
-      }
-      if (inFence) return line
-      // Convert "[ ] foo" to "- [ ] foo" and "[x] foo" to "- [x] foo" at line start (allow leading spaces)
-      const m = line.match(/^(\s*)\[( |x|X)\]\s+(.*)$/)
-      if (m) {
-        const [, indent, mark, rest] = m
-        const box = mark.toLowerCase() === 'x' ? '[x]' : '[ ]'
-        return `${indent}- ${box} ${rest}`
-      }
-      return line
-    })
-    .join('\n')
-}
 
 export default function Markdown({ children }: { children: string }) {
   // Normalize task markers outside fenced code blocks
