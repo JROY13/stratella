@@ -59,32 +59,45 @@ export async function POST() {
     }
   )
 
-  // Must be signed in
-  const { data: { user }, error: userErr } = await supabase.auth.getUser()
-  if (userErr || !user) {
-    return NextResponse.json({ ok: false, reason: 'no_user' }, { status: 401 })
-  }
-
-  // Only create if user currently has *zero* notes
-  const { count, error: countErr } = await supabase
-    .from('notes')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-
-  if (countErr) {
-    return NextResponse.json({ ok: false, reason: 'count_error', error: countErr.message }, { status: 500 })
-  }
-
-  if ((count ?? 0) === 0) {
-    const { error: insertErr } = await supabase.from('notes').insert({
-      user_id: user.id,
-      title: SAMPLE_TITLE,
-      body: SAMPLE_BODY,
-    })
-    if (insertErr) {
-      return NextResponse.json({ ok: false, reason: 'insert_error', error: insertErr.message }, { status: 500 })
+  try {
+    // Must be signed in
+    const { data: { user }, error: userErr } = await supabase.auth.getUser()
+    if (userErr || !user) {
+      return NextResponse.json({ ok: false, reason: 'no_user' }, { status: 401 })
     }
-  }
 
-  return res
+    // Only create if user currently has *zero* notes
+    const { count, error: countErr } = await supabase
+      .from('notes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    if (countErr) {
+      console.error('count notes error', countErr)
+      return NextResponse.json(
+        { ok: false, reason: 'count_error', error: countErr.message },
+        { status: 500 }
+      )
+    }
+
+    if ((count ?? 0) === 0) {
+      const { error: insertErr } = await supabase.from('notes').insert({
+        user_id: user.id,
+        title: SAMPLE_TITLE,
+        body: SAMPLE_BODY,
+      })
+      if (insertErr) {
+        console.error('insert sample note error', insertErr)
+        return NextResponse.json(
+          { ok: false, reason: 'insert_error', error: insertErr.message },
+          { status: 500 }
+        )
+      }
+    }
+
+    return res
+  } catch (e) {
+    console.error('init-user unexpected error', e)
+    return NextResponse.json({ ok: false, reason: 'unexpected_error' }, { status: 500 })
+  }
 }
