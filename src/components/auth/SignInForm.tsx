@@ -2,29 +2,12 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Session } from '@supabase/supabase-js'
 import { supabaseClient } from '@/lib/supabase-client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { syncCookieAndWait } from '@/lib/auth-sync'
 
-// --- Helper: sync server cookies then wait until the server sees the session ---
-async function syncCookieAndWait(session: Session) {
-  await fetch('/auth/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event: 'SIGNED_IN' as const, session }),
-  })
-
-  // Poll server until it reports a user (prevents redirect loops)
-  for (let i = 0; i < 20; i++) {
-    const w = await fetch('/auth/whoami', { cache: 'no-store' })
-    const j = await w.json().catch(() => ({}))
-    if ((j as { user?: unknown })?.user) return true
-    await new Promise((res) => setTimeout(res, 100))
-  }
-  return false
-}
 
 // --- Sample note content (Markdown) ---
 const SAMPLE_NOTE_TITLE = 'Sample Note — Start Here'
@@ -75,7 +58,7 @@ Markdown is a simple formatting language. Here are a few basics:
 `
 
 // --- Helper: ensure a user's first note exists (idempotent) ---
-async function ensureStarterNote(userId: string) {
+export async function ensureStarterNote(userId: string) {
   // Check if user already has any notes
   const { count, error: countErr } = await supabaseClient
     .from('notes')
@@ -125,7 +108,6 @@ export default function SignInForm() {
         const { data } = await supabaseClient.auth.getSession()
         if (data.session) {
           await syncCookieAndWait(data.session)
-          await fetch('/api/init-user', { method: 'POST' })   // <-- add this line
           // Create starter note on FIRST successful sign-in if needed
           await ensureStarterNote(data.session.user.id)
           router.replace('/notes')

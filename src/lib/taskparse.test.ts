@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
+import { describe, it, expect } from 'vitest'
 import { extractTasks, toggleTaskInMarkdown } from './taskparse'
 
 describe('extractTasks', () => {
@@ -9,13 +8,13 @@ describe('extractTasks', () => {
       '- [x] done',
       '- [X] done upper',
     ].join('\n')
-    const tasks = extractTasks(md)
-    assert.equal(tasks.length, 3)
-    assert.deepStrictEqual(tasks.map(t => t.checked), [false, true, true])
-    assert.deepStrictEqual(tasks.map(t => t.text), ['todo', 'done', 'done upper'])
+    const hits = extractTasks(md)
+    expect(hits).toHaveLength(3)
+    expect(hits.map(h => h.checked)).toEqual([false, true, true])
+    expect(hits.map(h => h.text)).toEqual(['todo', 'done', 'done upper'])
   })
 
-  it('ignores tasks inside fenced code blocks', () => {
+  it('ignores tasks inside code fences', () => {
     const md = [
       '- [ ] outside',
       '```',
@@ -24,35 +23,42 @@ describe('extractTasks', () => {
       '```',
       '- [X] outside too',
     ].join('\n')
-    const tasks = extractTasks(md)
-    assert.equal(tasks.length, 2)
-    assert.deepStrictEqual(tasks.map(t => t.text), ['outside', 'outside too'])
+    const hits = extractTasks(md)
+    expect(hits).toHaveLength(2)
+    expect(hits.map(h => h.text)).toEqual(['outside', 'outside too'])
   })
 })
 
 describe('toggleTaskInMarkdown', () => {
+  it('toggles the specified hit only', () => {
+    const md = '- [ ] a\n- [x] b'
+    const hit = extractTasks(md)[0]
+    const toggled = toggleTaskInMarkdown(md, hit)
+    expect(toggled.split('\n')).toEqual(['- [x] a', '- [x] b'])
+  })
+
   it('toggles tasks preserving case', () => {
     const md = '- [X] upper'
     const hit = extractTasks(md)[0]
     const unchecked = toggleTaskInMarkdown(md, hit)
-    assert.match(unchecked, /\[ \] upper/)
+    expect(unchecked).toMatch(/\[ \] upper/)
     const rechecked = toggleTaskInMarkdown(unchecked, { ...hit, checked: false })
-    assert.match(rechecked, /\[X\] upper/)
+    expect(rechecked).toMatch(/\[X\] upper/)
   })
 
   it('toggles lowercase tasks', () => {
     const md = '- [x] lower'
     const hit = extractTasks(md)[0]
     const unchecked = toggleTaskInMarkdown(md, hit)
-    assert.match(unchecked, /\[ \] lower/)
+    expect(unchecked).toMatch(/\[ \] lower/)
     const rechecked = toggleTaskInMarkdown(unchecked, { ...hit, checked: false })
-    assert.match(rechecked, /\[x\] lower/)
+    expect(rechecked).toMatch(/\[x\] lower/)
   })
 
   it('checks an unchecked task with lowercase x', () => {
     const md = '- [ ] todo'
     const hit = extractTasks(md)[0]
     const checked = toggleTaskInMarkdown(md, hit)
-    assert.match(checked, /\[x\] todo/)
+    expect(checked).toMatch(/\[x\] todo/)
   })
 })

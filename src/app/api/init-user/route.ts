@@ -20,7 +20,7 @@ Write tasks anywhere in your notes using Markdown checkboxes:
 Only **unchecked** tasks appear under the **Tasks** view, grouped by the note they live in.  
 Click a task’s checkbox in **Tasks** to mark it done in the original note.
 
-## Quick Markdown cheatsheet
+## Quick Markdown cheat sheet
 
 # Heading 1
 ## Heading 2, etc.

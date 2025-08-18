@@ -46,7 +46,11 @@ export async function toggleTaskFromPinned(noteId: string, taskLine: number) {
   if (!hit) return
 
   const nextBody = toggleTaskInMarkdown(data.body, hit)
-  await supabase.from('notes').update({ body: nextBody }).eq('id', noteId)
+  await supabase
+    .from('notes')
+    .update({ body: nextBody })
+    .eq('id', noteId)
+    .eq('user_id', user.id)
 
   revalidatePath('/notes')
   revalidatePath(`/notes/${noteId}`)
