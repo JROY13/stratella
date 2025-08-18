@@ -6,6 +6,17 @@ import { supabaseClient } from '@/lib/supabase-client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { z } from 'zod'
+
+const signUpSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
 
 
 export default function SignInForm() {
@@ -13,6 +24,7 @@ export default function SignInForm() {
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -40,6 +52,7 @@ export default function SignInForm() {
         }
       } else {
         // SIGN UP
+        signUpSchema.parse({ password, confirmPassword })
         const { data, error } = await supabaseClient.auth.signUp({ email, password })
         if (error) throw error
 
@@ -56,7 +69,8 @@ export default function SignInForm() {
         }
       }
     } catch (e) {
-      if (e instanceof Error) setErr(e.message)
+      if (e instanceof z.ZodError) setErr(e.issues.map((issue) => issue.message).join(', '))
+      else if (e instanceof Error) setErr(e.message)
       else setErr('Something went wrong')
     } finally {
       setLoading(false)
@@ -104,6 +118,21 @@ export default function SignInForm() {
         />
       </div>
 
+      {mode === 'sign_up' && (
+        <div className="grid gap-2">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+            required
+          />
+        </div>
+      )}
+
       <Button type="submit" className="w-full" disabled={loading}>
         {loading
           ? mode === 'sign_in'
@@ -130,7 +159,10 @@ export default function SignInForm() {
             Don&apos;t have an account?{' '}
             <button
               type="button"
-              onClick={() => setMode('sign_up')}
+              onClick={() => {
+                setMode('sign_up')
+                setConfirmPassword('')
+              }}
               className="underline underline-offset-4 hover:text-primary"
             >
               Sign up
@@ -141,7 +173,10 @@ export default function SignInForm() {
             Already have an account?{' '}
             <button
               type="button"
-              onClick={() => setMode('sign_in')}
+              onClick={() => {
+                setMode('sign_in')
+                setConfirmPassword('')
+              }}
               className="underline underline-offset-4 hover:text-primary"
             >
               Sign in
