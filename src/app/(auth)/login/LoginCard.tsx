@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { syncCookieAndWait } from '@/lib/auth-sync'
+import type { Session } from '@supabase/supabase-js'
 
 export default function LoginCard() {
   const router = useRouter()
@@ -14,16 +15,18 @@ export default function LoginCard() {
   useEffect(() => {
     let mounted = true
 
-    supabaseClient.auth.getSession().then(async ({ data }) => {
-      if (!mounted) return
-      if (data.session) {
-        await syncCookieAndWait(data.session)
-        await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
-          console.error('init-user error', err)
-        )
-        router.replace('/notes')
-      }
-    })
+    supabaseClient.auth
+      .getSession()
+      .then(async ({ data: { session } }: { data: { session: Session | null } }) => {
+        if (!mounted) return
+        if (session) {
+          await syncCookieAndWait(session)
+          await fetch('/api/init-user', { method: 'POST' }).catch((err) =>
+            console.error('init-user error', err)
+          )
+          router.replace('/notes')
+        }
+      })
 
     const { data: sub } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
