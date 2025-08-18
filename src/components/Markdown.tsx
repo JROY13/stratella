@@ -14,18 +14,6 @@ type InputProps = React.DetailedHTMLProps<
   HTMLInputElement
 >
 
-/** Turn Notion-style "[ ] Task" / "[x] Task" at line-start into GFM "- [ ] Task" / "- [x] Task". */
-function normalizeTasks(md: string) {
-  return md
-    .split('\n')
-    .map((line) => {
-      // Skip inside fenced code blocks
-      // (very light heuristic: if a line starts with triple backticks, flip state)
-      return line
-    })
-    .join('\n')
-}
-
 export default function Markdown({ children }: { children: string }) {
   // Proper normalize with code fences handled
   const lines = children.split('\n')
