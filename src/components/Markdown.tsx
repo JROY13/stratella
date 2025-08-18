@@ -14,23 +14,14 @@ type InputProps = React.DetailedHTMLProps<
   HTMLInputElement
 >
 
-/** Turn Notion-style "[ ] Task" / "[x] Task" at line-start into GFM "- [ ] Task" / "- [x] Task". */
+/**
+ * Convert leading "[ ] Task" / "[x] Task" at line-start into GFM
+ * "- [ ] Task" / "- [x] Task" outside fenced code blocks.
+ */
 function normalizeTasks(md: string) {
-  return md
-    .split('\n')
-    .map((line) => {
-      // Skip inside fenced code blocks
-      // (very light heuristic: if a line starts with triple backticks, flip state)
-      return line
-    })
-    .join('\n')
-}
-
-export default function Markdown({ children }: { children: string }) {
-  // Proper normalize with code fences handled
-  const lines = children.split('\n')
+  const lines = md.split('\n')
   let inFence = false
-  const normalized = lines
+  return lines
     .map((line) => {
       if (line.trim().startsWith('```')) {
         inFence = !inFence
@@ -46,7 +37,12 @@ export default function Markdown({ children }: { children: string }) {
       }
       return line
     })
-  .join('\n')
+    .join('\n')
+}
+
+export default function Markdown({ children }: { children: string }) {
+  // Normalize task markers outside fenced code blocks
+  const normalized = normalizeTasks(children)
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
