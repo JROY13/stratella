@@ -69,7 +69,7 @@ export default function SignInForm() {
         }
       }
     } catch (e) {
-      if (e instanceof z.ZodError) setErr(e.errors.map((er) => er.message).join(', '))
+      if (e instanceof z.ZodError) setErr(e.issues.map((er) => er.message).join(', '))
       else if (e instanceof Error) setErr(e.message)
       else setErr('Something went wrong')
     } finally {
