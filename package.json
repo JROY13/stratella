@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest"
+    "test": "node --import tsx node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.2",
