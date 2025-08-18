@@ -37,7 +37,6 @@ Have fun!
 
 export async function POST() {
   const supabase = createRouteHandlerClient({ cookies })
-
   try {
     // Must be signed in
     const { data: { user }, error: userErr } = await supabase.auth.getUser()
