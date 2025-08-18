@@ -16,6 +16,13 @@ describe('extractTasks', () => {
     expect(hits.map(h => h.checked)).toEqual([false, true, false, true])
   })
 
+  it('supports bulletless checkboxes', () => {
+    const md = '[ ] todo\n[x] done\n[X] DONE'
+    const hits = extractTasks(md)
+    expect(hits).toHaveLength(3)
+    expect(hits.map(h => h.checked)).toEqual([false, true, true])
+  })
+
   it('ignores tasks inside code fences', () => {
     const md = [
       '```',

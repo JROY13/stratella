@@ -8,7 +8,7 @@ export type TaskHit = {
   mark: string
 }
 
-const TASK_RE = /^\s*(?:[-*+]|\d+\.)\s+\[( |x|X)\]\s+(.*)$/
+const TASK_RE = /^\s*(?:(?:[-*+]|\d+\.)\s+)?\[( |x|X)\]\s+(.*)$/
 
 export function extractTasks(md: string): TaskHit[] {
   const out: TaskHit[] = []
