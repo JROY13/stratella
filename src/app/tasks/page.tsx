@@ -3,12 +3,14 @@ export const dynamic = 'force-dynamic'
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { extractTasks } from '@/lib/taskparse'
+import { extractTasks, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
 import { toggleTaskFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 
-export default async function TasksPage() {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -18,16 +20,34 @@ export default async function TasksPage() {
     .select('id,title,body,updated_at')
     .order('updated_at', { ascending: false })
 
-  const groups = []
+  const tasks: (TaskWithNote & { noteTitle: string })[] = []
   for (const n of notes ?? []) {
-    const todos = extractTasks(n.body).filter(t => !t.checked)
-    if (todos.length) {
-      groups.push({
-        id: n.id,
-        title: n.title || 'Untitled',
-        tasks: todos.map(t => ({ text: t.text, line: t.line })),
-      })
+    const todos = extractTasks(n.body)
+    tasks.push(
+      ...todos.map(t => ({ ...t, noteId: n.id, noteTitle: n.title || 'Untitled' }))
+    )
+  }
+
+  const params = await searchParams
+
+  const filters: TaskFilters = {
+    status: typeof params.status === 'string' ? params.status : undefined,
+    note: typeof params.note === 'string' ? params.note : undefined,
+    tag: typeof params.tag === 'string' ? params.tag : undefined,
+    due: typeof params.due === 'string' ? params.due : undefined,
+    sort: typeof params.sort === 'string' ? params.sort : undefined,
+  }
+
+  const filtered = filterTasks(tasks, filters)
+
+  const groups: { id: string; title: string; tasks: typeof filtered }[] = []
+  for (const t of filtered) {
+    let g = groups.find(g => g.id === t.noteId)
+    if (!g) {
+      g = { id: t.noteId, title: t.noteTitle, tasks: [] }
+      groups.push(g)
     }
+    g.tasks.push(t)
   }
 
   return (
@@ -37,6 +57,45 @@ export default async function TasksPage() {
           <CardTitle>Task List</CardTitle>
         </CardHeader>
         <CardContent>
+          <form className="mb-4 flex flex-wrap gap-2">
+            <select
+              name="status"
+              defaultValue={filters.status ?? ''}
+              className="h-9 rounded-md border border-input bg-transparent px-2"
+            >
+              <option value="">All</option>
+              <option value="open">Open</option>
+              <option value="done">Done</option>
+            </select>
+            <Input
+              name="note"
+              placeholder="Note ID"
+              defaultValue={filters.note ?? ''}
+              className="w-24"
+            />
+            <Input
+              name="tag"
+              placeholder="Tag"
+              defaultValue={filters.tag ?? ''}
+              className="w-24"
+            />
+            <Input
+              type="date"
+              name="due"
+              defaultValue={filters.due ?? ''}
+              className="w-36"
+            />
+            <select
+              name="sort"
+              defaultValue={filters.sort ?? ''}
+              className="h-9 rounded-md border border-input bg-transparent px-2"
+            >
+              <option value="">Sort</option>
+              <option value="due">Due</option>
+              <option value="text">Text</option>
+            </select>
+            <Button type="submit">Apply</Button>
+          </form>
           {groups.length === 0 ? (
             <p className="text-muted-foreground">No open tasks 🎉</p>
           ) : (
@@ -75,6 +134,19 @@ export default async function TasksPage() {
                         <Link href={`/notes/${group.id}#L${t.line + 1}`} className="hover:underline">
                           {t.text}
                         </Link>
+                        {t.due && (
+                          <span className="text-xs text-muted-foreground">due {t.due}</span>
+                        )}
+                        {t.status && (
+                          <Badge variant="outline" className="text-xs">
+                            {t.status}
+                          </Badge>
+                        )}
+                        {t.tags.map(tag => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            #{tag}
+                          </Badge>
+                        ))}
                       </li>
                     ))}
                   </ul>
