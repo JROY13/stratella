@@ -58,8 +58,8 @@ export default function Markdown({ children, noteId }: { children: string; noteI
           // Checkboxes that toggle tasks via server action
           input: (props: InputProps) => {
             if (props.type === 'checkbox') {
-              const { className, disabled, ...rest } = props
-              void disabled
+              const { className, disabled: _disabled, ...rest } = props
+              void _disabled
               return (
                 <input
                   {...rest}
