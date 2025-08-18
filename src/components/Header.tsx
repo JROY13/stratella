@@ -3,36 +3,28 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { supabaseClient } from '@/lib/supabase-client'
-
-async function waitServerSignedOut() {
-  for (let i = 0; i < 20; i++) {
-    const r = await fetch('/auth/whoami', { cache: 'no-store' })
-    const j = await r.json().catch(() => ({}))
-    if (!j?.user) return true
-    await new Promise(res => setTimeout(res, 100))
-  }
-  return false
-}
 
 export default function Header() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        router.replace('/login')
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [router])
+
   async function signOut() {
     setLoading(true)
     try {
       await supabaseClient.auth.signOut()
-      await fetch('/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: 'SIGNED_OUT' }),
-      })
-      await waitServerSignedOut()
-      router.replace('/login')
     } finally {
       setLoading(false)
     }

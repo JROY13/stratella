@@ -1,30 +1,11 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import type { Session } from '@supabase/supabase-js'
 import { supabaseClient } from '@/lib/supabase-client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
-// --- Helper: sync server cookies then wait until the server sees the session ---
-async function syncCookieAndWait(session: Session) {
-  await fetch('/auth/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event: 'SIGNED_IN' as const, session }),
-  })
-
-  // Poll server until it reports a user (prevents redirect loops)
-  for (let i = 0; i < 20; i++) {
-    const w = await fetch('/auth/whoami', { cache: 'no-store' })
-    const j = await w.json().catch(() => ({}))
-    if ((j as { user?: unknown })?.user) return true
-    await new Promise((res) => setTimeout(res, 100))
-  }
-  return false
-}
 
 // --- Sample note content (Markdown) ---
 const SAMPLE_NOTE_TITLE = 'Sample Note — Start Here'
@@ -103,7 +84,6 @@ export async function ensureStarterNote(userId: string) {
 }
 
 export default function SignInForm() {
-  const router = useRouter()
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -121,29 +101,13 @@ export default function SignInForm() {
       if (mode === 'sign_in') {
         const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
         if (error) throw error
-
-        const { data } = await supabaseClient.auth.getSession()
-        if (data.session) {
-          await syncCookieAndWait(data.session)
-          // Create starter note on FIRST successful sign-in if needed
-          await ensureStarterNote(data.session.user.id)
-          router.replace('/notes')
-        } else {
-          setMsg('Signed in, but no session returned. Try refreshing.')
-        }
       } else {
         // SIGN UP
         const { data, error } = await supabaseClient.auth.signUp({ email, password })
         if (error) throw error
 
-        if (data.session) {
-          // Email confirmations OFF → we already have a session
-          await syncCookieAndWait(data.session)
-          await ensureStarterNote(data.session.user.id)
-          router.replace('/notes')
-        } else {
+        if (!data.session) {
           // Email confirmations ON → no session yet.
-          // We cannot create the note until the user confirms & signs in the first time.
           setMsg('Check your email to confirm your account, then sign in.')
         }
       }
