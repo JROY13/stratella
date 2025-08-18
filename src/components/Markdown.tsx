@@ -3,6 +3,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { normalizeTasks } from '@/lib/markdown'
 
 type CodeProps =
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
@@ -15,26 +16,8 @@ type InputProps = React.DetailedHTMLProps<
 >
 
 export default function Markdown({ children }: { children: string }) {
-  // Proper normalize with code fences handled
-  const lines = children.split('\n')
-  let inFence = false
-  const normalized = lines
-    .map((line) => {
-      if (line.trim().startsWith('```')) {
-        inFence = !inFence
-        return line
-      }
-      if (inFence) return line
-      // Convert "[ ] foo" to "- [ ] foo" and "[x] foo" to "- [x] foo" at line start (allow leading spaces)
-      const m = line.match(/^(\s*)\[( |x|X)\]\s+(.*)$/)
-      if (m) {
-        const [, indent, mark, rest] = m
-        const box = mark.toLowerCase() === 'x' ? '[x]' : '[ ]'
-        return `${indent}- ${box} ${rest}`
-      }
-      return line
-    })
-  .join('\n')
+  // Normalize task markers outside fenced code blocks
+  const normalized = normalizeTasks(children)
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
