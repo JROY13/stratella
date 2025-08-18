@@ -4,7 +4,7 @@ import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { extractTasks } from '@/lib/taskparse'
-import { toggleTaskFromPinned } from '@/app/actions'
+import { toggleTaskFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -49,7 +49,7 @@ export default async function TasksPage() {
                   <ul className="mt-2 space-y-2">
                     {group.tasks.map(t => (
                       <li key={t.line} className="flex items-center gap-2">
-                        <form action={toggleTaskFromPinned.bind(null, group.id, t.line)}>
+                        <form action={toggleTaskFromNote.bind(null, group.id, t.line)}>
                           <Button
                             type="submit"
                             title="Mark done"
