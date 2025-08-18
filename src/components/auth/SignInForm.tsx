@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { syncCookieAndWait } from '@/lib/auth-sync'
+import { z } from 'zod'
 
 
 // --- Sample note content (Markdown) ---
@@ -85,11 +86,22 @@ export async function ensureStarterNote(userId: string) {
   }
 }
 
+const signUpSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  })
+
 export default function SignInForm() {
   const router = useRouter()
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -116,6 +128,11 @@ export default function SignInForm() {
         }
       } else {
         // SIGN UP
+        const parsed = signUpSchema.safeParse({ password, confirmPassword })
+        if (!parsed.success) {
+          setErr(parsed.error.errors[0].message)
+          return
+        }
         const { data, error } = await supabaseClient.auth.signUp({ email, password })
         if (error) throw error
 
@@ -178,6 +195,21 @@ export default function SignInForm() {
           required
         />
       </div>
+
+      {mode === 'sign_up' && (
+        <div className="grid gap-2">
+          <Label htmlFor="confirm-password">Confirm password</Label>
+          <Input
+            id="confirm-password"
+            type="password"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+            required
+          />
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading
