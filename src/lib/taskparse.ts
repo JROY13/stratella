@@ -104,7 +104,12 @@ export function filterTasks<T extends TaskWithNote>(tasks: T[], filters: TaskFil
   if (filters.due) out = out.filter(t => t.due === filters.due)
 
   if (filters.sort === 'due') {
-    out.sort((a, b) => (a.due ?? '').localeCompare(b.due ?? ''))
+    const toTime = (d?: string) => {
+      if (!d) return Number.POSITIVE_INFINITY
+      const t = new Date(d).getTime()
+      return Number.isNaN(t) ? Number.POSITIVE_INFINITY : t
+    }
+    out.sort((a, b) => toTime(a.due) - toTime(b.due))
   } else if (filters.sort === 'text') {
     out.sort((a, b) => a.text.localeCompare(b.text))
   }
