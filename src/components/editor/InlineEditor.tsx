@@ -8,6 +8,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 
 export interface InlineEditorProps {
   noteId: string
@@ -16,8 +17,40 @@ export interface InlineEditorProps {
 }
 
 export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
+  const TaskItemExt = TaskItem.extend({
+    addProseMirrorPlugins() {
+      const name = this.name
+      return [
+        new Plugin({
+          key: new PluginKey('taskItemClick'),
+          props: {
+            handleClickOn(view, _pos, node, nodePos, event) {
+              const el = event.target as HTMLElement
+              if (node.type.name === name && el.tagName === 'INPUT') {
+                event.preventDefault()
+                const checked = !node.attrs.checked
+                view.dispatch(
+                  view.state.tr.setNodeMarkup(nodePos, undefined, { ...node.attrs, checked })
+                )
+                view.focus()
+                return true
+              }
+              return false
+            },
+          },
+        }),
+      ]
+    },
+  })
+
   const editor = useEditor({
-    extensions: [StarterKit.configure({ history: {} }), TaskList, TaskItem, Placeholder, Markdown],
+    extensions: [
+      StarterKit.configure({ history: {} }),
+      TaskList,
+      TaskItemExt,
+      Placeholder,
+      Markdown,
+    ],
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
