@@ -54,6 +54,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
     g.tasks.push(t)
   }
 
+  const emptyMessage =
+    filters.status === 'done' ? 'No closed tasks' : 'No tasks found'
+
   return (
     <div className="space-y-6">
       <Card>
@@ -109,7 +112,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             <Button type="submit">Apply</Button>
           </form>
           {groups.length === 0 ? (
-            <p className="text-muted-foreground">No open tasks 🎉</p>
+            <p className="text-muted-foreground">{emptyMessage}</p>
           ) : (
             <div className="space-y-6">
               {groups.map(group => (
