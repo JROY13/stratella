@@ -21,6 +21,25 @@ export default function Markdown({ children, noteId }: { children: string; noteI
   const normalized = normalizeTasks(children)
   const [, startTransition] = React.useTransition()
 
+  function renderTags(text: string) {
+    const parts: React.ReactNode[] = []
+    const tagRe = /(tag:(\w+))|(#(\w+))/g
+    let last = 0
+    let m: RegExpExecArray | null
+    while ((m = tagRe.exec(text)) !== null) {
+      if (m.index > last) parts.push(text.slice(last, m.index))
+      const tag = m[2] ?? m[4]
+      parts.push(
+        <span key={parts.length} className="text-xs text-muted-foreground">
+          #{tag}
+        </span>
+      )
+      last = tagRe.lastIndex
+    }
+    if (last < text.length) parts.push(text.slice(last))
+    return parts
+  }
+
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
       <ReactMarkdown
@@ -37,11 +56,22 @@ export default function Markdown({ children, noteId }: { children: string; noteI
                 child.type === 'input' &&
                 (child.props as { type?: string }).type === 'checkbox'
             )
-              const line = (node as { position?: { start?: { line?: number } } })
-                ?.position?.start?.line
-              const className = `${(props as { className?: string }).className ?? ''} ${
-                hasCheckbox ? 'list-none' : ''
-              } flex items-center gap-2 my-0.5 target:bg-accent/30`;
+            const line = (node as { position?: { start?: { line?: number } } })
+              ?.position?.start?.line
+            const className = `${(props as { className?: string }).className ?? ''} ${
+              hasCheckbox ? 'list-none' : ''
+            } flex items-center gap-2 my-0.5 target:bg-accent/30`
+
+            const processed = React.Children.map(children, (child) => {
+              if (typeof child === 'string') return renderTags(child)
+              if (
+                React.isValidElement<{ children?: React.ReactNode }>(child) &&
+                typeof child.props.children === 'string'
+              ) {
+                return React.cloneElement(child, {}, renderTags(child.props.children))
+              }
+              return child
+            })
 
             return (
               <li
@@ -50,7 +80,7 @@ export default function Markdown({ children, noteId }: { children: string; noteI
                 data-line={line}
                 className={className}
               >
-                {children}
+                {processed}
               </li>
             )
           },
