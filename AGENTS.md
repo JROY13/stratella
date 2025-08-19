@@ -1,10 +1,7 @@
-
-## `Agents.md`
-
 ````markdown
-# Agents
+# Agents (Stratella)
 
-This file defines how Codex Agents should operate in the **Stratella** repository.
+This file defines how Codex Agents should operate in this repository.
 
 ---
 
@@ -50,9 +47,7 @@ git push --force-with-lease -u origin task/<slug>
 
 ### Quick Ask Template
 
-If you need to trigger a rebase manually, you can ask:
-
-> **“Rebase this task branch on the latest `main` so it’s up to date and won’t cause merge conflicts.”**
+> Rebase this task branch on the latest `main` so it’s up to date and won’t cause merge conflicts.
 
 ---
 
@@ -68,7 +63,7 @@ If you need to trigger a rebase manually, you can ask:
 
 * Purpose: Ensure adequate test coverage for new code.
 * Actions: Create/modify unit tests in `__tests__/` directories.
-* Must not modify production logic.
+* Constraint: Must not modify production logic.
 
 ### Documentation Agent
 
@@ -81,30 +76,8 @@ If you need to trigger a rebase manually, you can ask:
 
 * Each Task = one branch.
 * Always rebase on `main` before PR.
-* Report conflicts clearly instead of trying to guess a resolution.
+* Report conflicts clearly instead of guessing a resolution.
 * Use small, focused PRs.
 
-````
-
----
-
-## `.github/workflows/require-up-to-date.yml`
-
-```yaml
-name: Require Up-To-Date
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ensure branch is up to date with base
-        run: |
-          if [ "${{ github.event.pull_request.mergeable_state }}" = "behind" ]; then
-            echo "Branch is behind base; update or rebase required.";
-            exit 1;
-          fi
-````
-
+```
+```
