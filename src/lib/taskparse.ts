@@ -86,7 +86,6 @@ export type TaskWithNote = TaskHit & { noteId: string }
 
 export type TaskFilters = {
   status?: string
-  note?: string
   tag?: string
   due?: string
   sort?: string
@@ -96,7 +95,6 @@ export function filterTasks<T extends TaskWithNote>(tasks: T[], filters: TaskFil
   let out = [...tasks]
   if (filters.status === 'open') out = out.filter(t => !t.checked)
   else if (filters.status === 'done') out = out.filter(t => t.checked)
-  if (filters.note) out = out.filter(t => t.noteId === filters.note)
   if (filters.tag) {
     const tag = filters.tag
     out = out.filter(t => t.tags.includes(tag))

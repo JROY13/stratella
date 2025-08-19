@@ -31,15 +31,17 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   const params = await searchParams
 
+  const noteId = typeof params.note === 'string' ? params.note : undefined
+
   const filters: TaskFilters = {
     status: typeof params.status === 'string' ? params.status : undefined,
-    note: typeof params.note === 'string' ? params.note : undefined,
     tag: typeof params.tag === 'string' ? params.tag : undefined,
     due: typeof params.due === 'string' ? params.due : undefined,
     sort: typeof params.sort === 'string' ? params.sort : undefined,
   }
 
-  const filtered = filterTasks(tasks, filters)
+  const scoped = noteId ? tasks.filter(t => t.noteId === noteId) : tasks
+  const filtered = filterTasks(scoped, filters)
 
   const groups: { id: string; title: string; tasks: typeof filtered }[] = []
   for (const t of filtered) {
@@ -68,12 +70,18 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
               <option value="open">Open</option>
               <option value="done">Done</option>
             </select>
-            <Input
+            <select
               name="note"
-              placeholder="Note ID"
-              defaultValue={filters.note ?? ''}
-              className="w-24"
-            />
+              defaultValue={noteId ?? ''}
+              className="h-9 rounded-md border border-input bg-transparent px-2"
+            >
+              <option value="">All Notes</option>
+              {notes?.map(n => (
+                <option key={n.id} value={n.id}>
+                  {n.title || 'Untitled'}
+                </option>
+              ))}
+            </select>
             <Input
               name="tag"
               placeholder="Tag"
