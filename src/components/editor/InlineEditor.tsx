@@ -17,7 +17,7 @@ export interface InlineEditorProps {
 
 export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit, TaskList, TaskItem, Placeholder, Markdown],
+    extensions: [StarterKit.configure({ history: {} }), TaskList, TaskItem, Placeholder, Markdown],
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
