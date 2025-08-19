@@ -91,6 +91,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             <Input
               type="date"
               name="due"
+              placeholder="Due date"
+              title="Selecting a date narrows tasks whose metadata includes due:YYYY-MM-DD"
               defaultValue={filters.due ?? ''}
               className="w-36"
             />
