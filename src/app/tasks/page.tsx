@@ -38,7 +38,6 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   const filters: TaskFilters = {
     completion: typeof params.completion === 'string' ? params.completion : undefined,
-    status: typeof params.status === 'string' ? params.status : undefined,
     tag: typeof params.tag === 'string' ? params.tag : undefined,
     due: typeof params.due === 'string' ? params.due : undefined,
     sort: typeof params.sort === 'string' ? params.sort : undefined,
@@ -101,13 +100,6 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                 </option>
               ))}
             </select>
-            {/* TODO: Remove Status filter from view filter - redundant with completion */}
-            <Input
-              name="status"
-              placeholder="Status"
-              defaultValue={filters.status ?? ''}
-              className="w-24"
-            />
             <Input
               type="date"
               name="due"
