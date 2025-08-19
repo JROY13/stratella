@@ -24,9 +24,9 @@ export default function InlineEditor({ markdown, onChange }: InlineEditorProps) 
   })
 
   React.useEffect(() => {
-    if (editor && markdown) {
-      editor.commands.setContent(markdown)
-    }
+    if (!editor) return
+    const doc = editor.storage.markdown.parse(markdown)
+    editor.commands.setContent(doc)
   }, [editor, markdown])
 
   React.useEffect(() => {
