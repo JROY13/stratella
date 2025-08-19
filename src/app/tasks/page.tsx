@@ -35,6 +35,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const noteId = typeof params.note === 'string' ? params.note : undefined
 
   const filters: TaskFilters = {
+    completion: typeof params.completion === 'string' ? params.completion : undefined,
     status: typeof params.status === 'string' ? params.status : undefined,
     tag: typeof params.tag === 'string' ? params.tag : undefined,
     due: typeof params.due === 'string' ? params.due : undefined,
@@ -55,7 +56,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   }
 
   const emptyMessage =
-    filters.status === 'done' ? 'No closed tasks' : 'No tasks found'
+    filters.completion === 'done' ? 'No closed tasks' : 'No tasks found'
 
   return (
     <div className="space-y-6">
@@ -66,8 +67,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         <CardContent>
           <form className="mb-4 flex flex-wrap gap-2">
             <select
-              name="status"
-              defaultValue={filters.status ?? ''}
+              name="completion"
+              defaultValue={filters.completion ?? ''}
               className="h-9 rounded-md border border-input bg-transparent px-2"
             >
               <option value="">All</option>
@@ -90,6 +91,12 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
               name="tag"
               placeholder="Tag"
               defaultValue={filters.tag ?? ''}
+              className="w-24"
+            />
+            <Input
+              name="status"
+              placeholder="Status"
+              defaultValue={filters.status ?? ''}
               className="w-24"
             />
             <Input
