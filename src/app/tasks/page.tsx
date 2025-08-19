@@ -4,11 +4,12 @@ import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { extractTasks, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
-import { toggleTaskFromNote } from '@/app/actions'
+import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import DueDateInput from '@/components/DueDateInput'
 import { cn } from '@/lib/utils'
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -172,8 +173,14 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                           >
                             {t.text}
                           </Link>
-                          {t.due && (
-                            <span className="text-xs text-muted-foreground">due {t.due}</span>
+                          {t.checked ? (
+                            t.due && (
+                              <span className="text-xs text-muted-foreground">due {t.due}</span>
+                            )
+                          ) : (
+                            <form action={setTaskDueFromNote.bind(null, group.id, t.line)}>
+                              <DueDateInput defaultValue={t.due} />
+                            </form>
                           )}
                           {t.status && (
                             <Badge variant="outline" className="text-xs">

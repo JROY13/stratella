@@ -61,3 +61,36 @@ export async function toggleTaskFromNote(noteId: string, taskLine: number) {
   revalidatePath(`/notes/${noteId}`)
   revalidatePath('/tasks')
 }
+
+export async function setTaskDueFromNote(noteId: string, taskLine: number, formData: FormData) {
+  const due = (formData.get('due') as string) || ''
+  const { supabase, user } = await requireUser()
+  const { data } = await supabase
+    .from('notes')
+    .select('body')
+    .eq('id', noteId)
+    .eq('user_id', user.id)
+    .single()
+  if (!data) throw new Error('Note not found')
+  const lines = data.body.split('\n')
+  if (taskLine >= lines.length) return
+  let line = lines[taskLine]
+  if (due) {
+    if (/due:[^\s]+/.test(line)) {
+      line = line.replace(/due:[^\s]+/, `due:${due}`)
+    } else {
+      line = `${line} due:${due}`
+    }
+  } else {
+    line = line.replace(/\s*due:[^\s]+/, '')
+  }
+  lines[taskLine] = line
+  await supabase
+    .from('notes')
+    .update({ body: lines.join('\n') })
+    .eq('id', noteId)
+    .eq('user_id', user.id)
+  revalidatePath('/notes')
+  revalidatePath(`/notes/${noteId}`)
+  revalidatePath('/tasks')
+}
