@@ -9,6 +9,8 @@ import TaskItem from '@tiptap/extension-task-item'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { SlashCommand } from './SlashCommand'
+import { BlockMenu } from './BlockMenu'
 
 export interface InlineEditorProps {
   noteId: string
@@ -50,6 +52,7 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
       TaskItemExt,
       Placeholder,
       Markdown,
+      SlashCommand,
     ],
     editorProps: {
       attributes: {
@@ -93,6 +96,7 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
+      {editor && <BlockMenu editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   )
