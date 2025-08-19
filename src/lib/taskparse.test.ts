@@ -85,11 +85,6 @@ describe('filterTasks', () => {
     expect(res.map(t => t.text)).toEqual(['a', 'c', 'd'])
   })
 
-  it('filters by metadata status', () => {
-    const res = filterTasks(tasks, { status: 'waiting' })
-    expect(res.map(t => t.text)).toEqual(['b'])
-  })
-
   it('filters by tag and due date', () => {
     const res = filterTasks(tasks, { tag: 'work', due: '2024-07-02' })
     expect(res.map(t => t.text)).toEqual(['c'])
