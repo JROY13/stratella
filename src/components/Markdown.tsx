@@ -64,7 +64,10 @@ export default function Markdown({ children, noteId }: { children: string; noteI
 
             const processed = React.Children.map(children, (child) => {
               if (typeof child === 'string') return renderTags(child)
-              if (React.isValidElement(child) && typeof child.props.children === 'string') {
+              if (
+                React.isValidElement<{ children?: React.ReactNode }>(child) &&
+                typeof child.props.children === 'string'
+              ) {
                 return React.cloneElement(child, {}, renderTags(child.props.children))
               }
               return child
