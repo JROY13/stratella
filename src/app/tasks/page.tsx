@@ -30,6 +30,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
     )
   }
 
+  const tagOptions = Array.from(new Set(tasks.flatMap(t => t.tags))).sort()
+
   const params = await searchParams
 
   const noteId = typeof params.note === 'string' ? params.note : undefined
@@ -87,12 +89,19 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                 </option>
               ))}
             </select>
-            <Input
+            <select
               name="tag"
-              placeholder="Tag"
               defaultValue={filters.tag ?? ''}
-              className="w-24"
-            />
+              className="h-9 rounded-md border border-input bg-transparent px-2"
+            >
+              <option value="">All Tags</option>
+              {tagOptions.map(tag => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+            {/* TODO: Remove Status filter from view filter - redundant with completion */}
             <Input
               name="status"
               placeholder="Status"
@@ -200,9 +209,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                             </Badge>
                           )}
                           {t.tags.map(tag => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
+                            <span key={tag} className="text-xs text-muted-foreground">
                               #{tag}
-                            </Badge>
+                            </span>
                           ))}
                         </div>
                         {t.checked && (
