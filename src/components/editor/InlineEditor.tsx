@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { saveNoteInline } from '@/app/actions'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
@@ -9,11 +10,12 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 
 export interface InlineEditorProps {
+  noteId: string
   markdown: string
   onChange?: (markdown: string) => void
 }
 
-export default function InlineEditor({ markdown, onChange }: InlineEditorProps) {
+export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
   const editor = useEditor({
     extensions: [StarterKit, TaskList, TaskItem, Placeholder, Markdown],
     editorProps: {
@@ -29,16 +31,32 @@ export default function InlineEditor({ markdown, onChange }: InlineEditorProps) 
     editor.commands.setContent(doc)
   }, [editor, markdown])
 
+  const saveTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
   React.useEffect(() => {
-    if (!editor || !onChange) return
-    const handler = () => {
-      onChange(editor.storage.markdown.getMarkdown())
+    if (!editor) return
+    const updateHandler = () => {
+      const md = editor.storage.markdown.getMarkdown()
+      onChange?.(md)
+      if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      saveTimeout.current = setTimeout(() => {
+        saveNoteInline(noteId, md)
+      }, 2000)
     }
-    editor.on('update', handler)
+    const blurHandler = () => {
+      const md = editor.storage.markdown.getMarkdown()
+      onChange?.(md)
+      if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      saveNoteInline(noteId, md)
+    }
+    editor.on('update', updateHandler)
+    editor.on('blur', blurHandler)
     return () => {
-      editor.off('update', handler)
+      editor.off('update', updateHandler)
+      editor.off('blur', blurHandler)
+      if (saveTimeout.current) clearTimeout(saveTimeout.current)
     }
-  }, [editor, onChange])
+  }, [editor, noteId, onChange])
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
