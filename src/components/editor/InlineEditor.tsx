@@ -16,6 +16,8 @@ export interface InlineEditorProps {
   onChange?: (markdown: string) => void
 }
 
+export const AUTOSAVE_THROTTLE_MS = 3000
+
 export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
   const TaskItemExt = TaskItem.extend({
     addProseMirrorPlugins() {
@@ -74,7 +76,7 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
       if (saveTimeout.current) clearTimeout(saveTimeout.current)
       saveTimeout.current = setTimeout(() => {
         saveNoteInline(noteId, md)
-      }, 2000)
+      }, AUTOSAVE_THROTTLE_MS)
     }
     const blurHandler = () => {
       const md = editor.storage.markdown.getMarkdown()
