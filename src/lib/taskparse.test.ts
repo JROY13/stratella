@@ -89,8 +89,13 @@ describe('filterTasks', () => {
     expect(res.map(t => t.text)).toEqual(['c'])
   })
 
-  it('sorts by due date', () => {
-    const res = filterTasks(tasks, { sort: 'due' })
-    expect(res.map(t => t.text)).toEqual(['a', 'b', 'c'])
+  it('sorts by due date using numeric comparison and places undated tasks last', () => {
+    const unsorted: TaskWithNote[] = [
+      { text: 'oct', checked: false, line: 0, start: 0, end: 0, mark: ' ', tags: [], noteId: '1', due: '2024-10-01' },
+      { text: 'jul', checked: false, line: 1, start: 0, end: 0, mark: ' ', tags: [], noteId: '2', due: '2024-7-01' },
+      { text: 'none', checked: false, line: 2, start: 0, end: 0, mark: ' ', tags: [], noteId: '3' },
+    ]
+    const res = filterTasks(unsorted, { sort: 'due' })
+    expect(res.map(t => t.text)).toEqual(['jul', 'oct', 'none'])
   })
 })
