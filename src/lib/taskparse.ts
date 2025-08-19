@@ -85,6 +85,7 @@ export function toggleTaskInMarkdown(md: string, hit: TaskHit) {
 export type TaskWithNote = TaskHit & { noteId: string }
 
 export type TaskFilters = {
+  completion?: string
   status?: string
   tag?: string
   due?: string
@@ -93,8 +94,9 @@ export type TaskFilters = {
 
 export function filterTasks<T extends TaskWithNote>(tasks: T[], filters: TaskFilters): T[] {
   let out = [...tasks]
-  if (filters.status === 'open') out = out.filter(t => !t.checked)
-  else if (filters.status === 'done') out = out.filter(t => t.checked)
+  if (filters.completion === 'open') out = out.filter(t => !t.checked)
+  else if (filters.completion === 'done') out = out.filter(t => t.checked)
+  if (filters.status) out = out.filter(t => t.status === filters.status)
   if (filters.tag) {
     const tag = filters.tag
     out = out.filter(t => t.tags.includes(tag))

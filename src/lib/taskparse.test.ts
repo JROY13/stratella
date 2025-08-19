@@ -74,14 +74,19 @@ describe('toggleTaskInMarkdown', () => {
 
 describe('filterTasks', () => {
   const tasks: TaskWithNote[] = [
-    { text: 'a', checked: false, line: 0, start: 0, end: 0, mark: ' ', tags: ['work'], noteId: '1', due: '2024-07-01' },
-    { text: 'b', checked: true, line: 1, start: 0, end: 0, mark: 'x', tags: ['home'], noteId: '1', due: '2024-07-02' },
-    { text: 'c', checked: false, line: 2, start: 0, end: 0, mark: ' ', tags: ['work'], noteId: '2', due: '2024-07-02' },
+    { text: 'a', checked: false, line: 0, start: 0, end: 0, mark: ' ', tags: ['work'], noteId: '1', due: '2024-07-01', status: 'todo' },
+    { text: 'b', checked: true, line: 1, start: 0, end: 0, mark: 'x', tags: ['home'], noteId: '1', due: '2024-07-02', status: 'waiting' },
+    { text: 'c', checked: false, line: 2, start: 0, end: 0, mark: ' ', tags: ['work'], noteId: '2', due: '2024-07-02', status: 'todo' },
   ]
 
-  it('filters by status', () => {
-    const res = filterTasks(tasks, { status: 'open' })
+  it('filters by completion', () => {
+    const res = filterTasks(tasks, { completion: 'open' })
     expect(res.map(t => t.text)).toEqual(['a', 'c'])
+  })
+
+  it('filters by metadata status', () => {
+    const res = filterTasks(tasks, { status: 'waiting' })
+    expect(res.map(t => t.text)).toEqual(['b'])
   })
 
   it('filters by tag and due date', () => {
