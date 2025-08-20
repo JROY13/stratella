@@ -167,11 +167,17 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
   const [userId, setUserId] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    import('@/lib/supabase-client').then(({ supabaseClient }) => {
-      supabaseClient.auth.getUser().then(({ data }) => {
+    const fetchUser = async () => {
+      try {
+        const { supabaseClient } = await import('@/lib/supabase-client')
+        const { data } = await supabaseClient.auth.getUser()
         setUserId(data.user?.id ?? null)
-      })
-    })
+      } catch (error) {
+        console.warn('Failed to capture user analytics', error)
+      }
+    }
+
+    void fetchUser()
   }, [])
 
   React.useEffect(() => {
