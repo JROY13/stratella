@@ -31,7 +31,7 @@ export function saveWithRetry(
   attemptRef: React.MutableRefObject<number>,
   retryTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
 ): Promise<void> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const attempt = async () => {
       setStatus(attemptRef.current === 0 ? 'saving' : 'retrying')
       try {
@@ -64,7 +64,10 @@ export function createInlineEditorExtensions() {
                 event.preventDefault()
                 const checked = !node.attrs.checked
                 view.dispatch(
-                  view.state.tr.setNodeMarkup(nodePos, undefined, { ...node.attrs, checked })
+                  view.state.tr.setNodeMarkup(nodePos, undefined, {
+                    ...node.attrs,
+                    checked,
+                  }),
                 )
                 view.focus()
                 return true
@@ -87,7 +90,9 @@ export function createInlineEditorExtensions() {
           }
 
           const { $from } = this.editor.state.selection
-          const isEmpty = $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0
+          const isEmpty =
+            $from.parent.type.name === 'paragraph' &&
+            $from.parent.content.size === 0
 
           if (isEmpty) {
             return this.editor.commands.liftListItem(this.name)
@@ -99,7 +104,11 @@ export function createInlineEditorExtensions() {
           const { selection } = this.editor.state
           const { $from, empty } = selection
 
-          if (!empty || !$from.parentOffset || !this.editor.isActive('listItem')) {
+          if (
+            !empty ||
+            !$from.parentOffset ||
+            !this.editor.isActive('listItem')
+          ) {
             return false
           }
 
@@ -153,7 +162,11 @@ export function createInlineEditorExtensions() {
   ]
 }
 
-export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
+export default function InlineEditor({
+  noteId,
+  markdown,
+  onChange,
+}: InlineEditorProps) {
   const editor = useEditor({
     extensions: createInlineEditorExtensions(),
     editorProps: {
@@ -199,12 +212,21 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
 
   React.useEffect(() => {
     if (!editor) return
+
+    const source = markdown || ''
+
     try {
-      const doc = editor.storage.markdown.parser.parse(markdown ?? '')
+      const parse =
+        editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
+        ((md: string) => editor.storage.markdown.parser.parse(md))
+      const doc = parse(source)
       editor.commands.setContent(doc)
     } catch (err) {
-      console.error(err)
-      const empty = editor.storage.markdown.parser.parse('')
+      console.error('Failed to parse markdown', err)
+      const parseEmpty =
+        editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
+        ((md: string) => editor.storage.markdown.parser.parse(md))
+      const empty = parseEmpty('')
       editor.commands.setContent(empty)
     }
   }, [editor, markdown])
@@ -214,13 +236,21 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
   const retryTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const attempts = React.useRef(0)
 
-  const runSave = React.useCallback((md: string) => {
-    if (retryTimeout.current) {
-      clearTimeout(retryTimeout.current)
-      retryTimeout.current = null
-    }
-    saveWithRetry(() => saveNoteInline(noteId, md), setStatus, attempts, retryTimeout)
-  }, [noteId])
+  const runSave = React.useCallback(
+    (md: string) => {
+      if (retryTimeout.current) {
+        clearTimeout(retryTimeout.current)
+        retryTimeout.current = null
+      }
+      saveWithRetry(
+        () => saveNoteInline(noteId, md),
+        setStatus,
+        attempts,
+        retryTimeout,
+      )
+    },
+    [noteId],
+  )
 
   React.useEffect(() => {
     if (!editor) return
