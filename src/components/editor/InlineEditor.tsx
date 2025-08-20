@@ -4,7 +4,6 @@ import React from 'react';
 import { saveNoteInline } from '@/app/actions';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import ListItem from '@tiptap/extension-list-item';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -13,6 +12,9 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 import DragHandle from '@tiptap/extension-drag-handle';
 import { Extension } from '@tiptap/core';
 import FloatingToolbar from './FloatingToolbar';
+import TaskItemMarkdown from '../../../node_modules/tiptap-markdown/src/extensions/nodes/task-item.js';
+import ListItemMarkdown from '../../../node_modules/tiptap-markdown/src/extensions/nodes/list-item.js';
+import TaskList from './extensions/task-list';
 
 type DOMPurifyType = (typeof import('dompurify'))['default'];
 let DOMPurify: DOMPurifyType | null = null;
@@ -61,6 +63,9 @@ export function saveWithRetry(
 
 export function createInlineEditorExtensions() {
   const TaskItemExt = TaskItem.extend({
+    addStorage() {
+      return TaskItemMarkdown.config.addStorage.call(this);
+    },
     addProseMirrorPlugins() {
       const name = this.name;
       return [
@@ -90,6 +95,9 @@ export function createInlineEditorExtensions() {
   });
 
   const ListItemExt = ListItem.extend({
+    addStorage() {
+      return ListItemMarkdown.config.addStorage.call(this);
+    },
     addKeyboardShortcuts() {
       return {
         ...this.parent?.(),
