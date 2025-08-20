@@ -11,9 +11,18 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import DragHandle from '@tiptap/extension-drag-handle'
-import DOMPurify from 'dompurify'
 import { Extension } from '@tiptap/core'
 import FloatingToolbar from './FloatingToolbar'
+
+type DOMPurifyType = (typeof import('dompurify'))['default']
+let DOMPurify: DOMPurifyType | null = null
+async function getDOMPurify(): Promise<DOMPurifyType> {
+  if (!DOMPurify) {
+    const mod = await import('dompurify')
+    DOMPurify = mod.default
+  }
+  return DOMPurify
+}
 
 export interface InlineEditorProps {
   noteId: string
@@ -173,11 +182,16 @@ export default function InlineEditor({
       attributes: {
         class: 'focus:outline-none',
       },
-      transformPastedHTML: (html) => DOMPurify.sanitize(html),
+      transformPastedHTML: (html) =>
+        DOMPurify ? DOMPurify.sanitize(html) : html,
     },
   })
 
   const [userId, setUserId] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    void getDOMPurify()
+  }, [])
 
   React.useEffect(() => {
     const fetchUser = async () => {
@@ -200,8 +214,10 @@ export default function InlineEditor({
       const html = event.clipboardData?.getData('text/html')
       if (html) {
         event.preventDefault()
-        const sanitized = DOMPurify.sanitize(html)
-        editor.view.pasteHTML(sanitized)
+        void getDOMPurify().then((dp) => {
+          const sanitized = dp.sanitize(html)
+          editor.view.pasteHTML(sanitized)
+        })
       }
     }
     el.addEventListener('paste', handlePaste)
