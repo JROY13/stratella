@@ -1,6 +1,5 @@
-import TurndownService from 'turndown'
 import { createClient } from '@supabase/supabase-js'
-import { normalizeTasks } from '../src/lib/markdown'
+import { htmlToMarkdown } from '../src/lib/html'
 
 async function main() {
   const supabaseUrl = process.env.SUPABASE_URL
@@ -24,12 +23,11 @@ async function main() {
     throw error
   }
 
-  const turndown = new TurndownService()
   const updated: string[] = []
 
   for (const note of data ?? []) {
     const html = note.body ?? ''
-    const markdown = normalizeTasks(turndown.turndown(html))
+    const markdown = htmlToMarkdown(html)
     const { error: updateErr } = await supabase
       .from('notes')
       .update({ body: markdown })

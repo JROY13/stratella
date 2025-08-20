@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { deleteNote } from '@/app/actions'
+import { deleteNote, saveNoteInline } from '@/app/actions'
+import { htmlToMarkdown } from '@/lib/html'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import InlineEditor from '@/components/editor/InlineEditor'
@@ -27,6 +28,13 @@ export default async function NotePage({
 
   if (!note) redirect('/notes')
 
+  let body = note.body || ''
+  if (body.includes('<') || body.includes('data-type')) {
+    const markdown = htmlToMarkdown(body)
+    await saveNoteInline(note.id, markdown)
+    body = markdown
+  }
+
   // Capture the id into a serializable primitive for server actions
   const noteId = id
 
@@ -39,7 +47,7 @@ export default async function NotePage({
   return (
     <div className="space-y-4">
       <Input name="title" defaultValue={note.title} className="text-lg font-medium" />
-      <InlineEditor noteId={noteId} markdown={note.body} />
+      <InlineEditor noteId={noteId} markdown={body} />
       <form action={onDelete}>
         <Button type="submit" variant="outline">Delete</Button>
       </form>
