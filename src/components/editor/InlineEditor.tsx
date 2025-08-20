@@ -11,6 +11,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import DragHandle from '@tiptap/extension-drag-handle'
+import DOMPurify from 'dompurify'
 
 export interface InlineEditorProps {
   noteId: string
@@ -85,7 +86,10 @@ export function createInlineEditorExtensions() {
     TaskList,
     TaskItemExt,
     Placeholder,
-    Markdown,
+    Markdown.configure({
+      html: false,
+      transformPastedText: true, // enables markdown parser with escape support
+    }),
     DragHandle,
   ]
 }
@@ -97,8 +101,26 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
       attributes: {
         class: 'focus:outline-none',
       },
+      transformPastedHTML: (html) => DOMPurify.sanitize(html),
     },
   })
+
+  React.useEffect(() => {
+    if (!editor) return
+    const el = editor.view.dom as HTMLElement
+    const handlePaste = (event: ClipboardEvent) => {
+      const html = event.clipboardData?.getData('text/html')
+      if (html) {
+        event.preventDefault()
+        const sanitized = DOMPurify.sanitize(html)
+        editor.view.pasteHTML(sanitized)
+      }
+    }
+    el.addEventListener('paste', handlePaste)
+    return () => {
+      el.removeEventListener('paste', handlePaste)
+    }
+  }, [editor])
 
   React.useEffect(() => {
     if (!editor) return

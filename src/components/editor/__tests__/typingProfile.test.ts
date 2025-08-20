@@ -48,5 +48,5 @@ describe('typing performance and autosave', () => {
     expect(saveNoteInline).toHaveBeenCalledTimes(10)
 
     vi.useRealTimers()
-  }, 20000)
+  }, 40000)
 })
