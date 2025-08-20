@@ -26,13 +26,20 @@ export async function saveNote(id: string, title: string, body: string) {
   revalidatePath('/notes')
 }
 
-export async function saveNoteInline(id: string, body: string) {
+export async function saveNoteInline(
+  id: string,
+  body: string,
+  opts?: { revalidate?: boolean },
+) {
   const { supabase, user } = await requireUser()
   const normalized = normalizeTasks(body)
   await supabase.from('notes').update({ body: normalized }).eq('id', id).eq('user_id', user.id)
-  revalidatePath(`/notes/${id}`)
-  revalidatePath('/notes')
-  revalidatePath('/tasks')
+  const { revalidate = true } = opts ?? {}
+  if (revalidate !== false) {
+    revalidatePath(`/notes/${id}`)
+    revalidatePath('/notes')
+    revalidatePath('/tasks')
+  }
 }
 
 export async function deleteNote(id: string) {
