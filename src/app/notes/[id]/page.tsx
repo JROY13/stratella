@@ -28,7 +28,10 @@ export default async function NotePage({
 
   if (!note) redirect('/notes')
 
-  let body = note.body || ''
+  let body = note.body ?? ''
+  if (note.body == null) {
+    console.warn(`Note ${id} has no body`)
+  }
   if (body.includes('<') || body.includes('data-type')) {
     const markdown = htmlToMarkdown(body)
     await saveNoteInline(note.id, markdown)
