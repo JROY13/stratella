@@ -13,6 +13,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state'
 import DragHandle from '@tiptap/extension-drag-handle'
 import DOMPurify from 'dompurify'
 import { Extension } from '@tiptap/core'
+import FloatingToolbar from './FloatingToolbar'
 
 export interface InlineEditorProps {
   noteId: string
@@ -163,6 +164,16 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
     },
   })
 
+  const [userId, setUserId] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    import('@/lib/supabase-client').then(({ supabaseClient }) => {
+      supabaseClient.auth.getUser().then(({ data }) => {
+        setUserId(data.user?.id ?? null)
+      })
+    })
+  }, [])
+
   React.useEffect(() => {
     if (!editor) return
     const el = editor.view.dom as HTMLElement
@@ -239,6 +250,9 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
 
   return (
     <div className="space-y-1">
+      {editor && (
+        <FloatingToolbar editor={editor} noteId={noteId} userId={userId} />
+      )}
       <div className="prose prose-neutral dark:prose-invert max-w-none">
         <EditorContent editor={editor} />
       </div>

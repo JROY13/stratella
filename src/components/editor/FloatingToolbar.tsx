@@ -13,13 +13,43 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { track } from '@/lib/analytics'
 
 export interface FloatingToolbarProps {
   editor: Editor | null
+  noteId: string
+  userId: string | null
 }
 
-export function FloatingToolbar({ editor }: FloatingToolbarProps) {
+export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps) {
   if (!editor) return null
+
+  const getBlockId = () => {
+    const sel = editor.state?.selection
+    const from = sel?.$from
+    return (from?.parent?.attrs && from.parent.attrs.id) || (from ? String(from.before()) : null)
+  }
+
+  const handleBold = () => {
+    editor.chain().focus().toggleBold().run()
+    track('editor.toolbar.bold', {
+      note_id: noteId,
+      block_id: getBlockId(),
+      user_id: userId,
+    })
+  }
+
+  const handleToggleTaskList = () => {
+    const wasActive = editor.isActive('taskList')
+    editor.chain().focus().toggleTaskList().run()
+    if (!wasActive) {
+      track('editor.checklist.create', {
+        note_id: noteId,
+        block_id: getBlockId(),
+        user_id: userId,
+      })
+    }
+  }
 
   return (
     <BubbleMenu
@@ -37,11 +67,11 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
           type="button"
           size="icon"
           variant={editor.isActive('bold') ? 'default' : 'ghost'}
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          onClick={handleBold}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
-              editor.chain().focus().toggleBold().run()
+              handleBold()
             }
           }}
         >
@@ -111,11 +141,11 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
           type="button"
           size="icon"
           variant={editor.isActive('taskList') ? 'default' : 'ghost'}
-          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          onClick={handleToggleTaskList}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
-              editor.chain().focus().toggleTaskList().run()
+              handleToggleTaskList()
             }
           }}
         >

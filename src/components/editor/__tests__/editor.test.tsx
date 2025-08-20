@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Editor } from '@tiptap/react'
 import FloatingToolbar from '../FloatingToolbar'
 
+vi.mock('@/lib/analytics', () => ({ track: vi.fn() }))
+
 vi.mock('@tiptap/react', async () => {
   const actual = await vi.importActual<typeof import('@tiptap/react')>(
     '@tiptap/react'
@@ -67,7 +69,9 @@ describe('FloatingToolbar', () => {
       }),
     } as unknown as Editor
 
-    const { container } = render(<FloatingToolbar editor={editor} />)
+    const { container } = render(
+      <FloatingToolbar editor={editor} noteId="note" userId="user" />
+    )
     const buttons = container.querySelectorAll('button')
     expect(buttons.length).toBeGreaterThan(0)
   })
@@ -103,7 +107,9 @@ describe('FloatingToolbar', () => {
       }),
     } as unknown as Editor
 
-    const { container } = render(<FloatingToolbar editor={editor} />)
+    const { container } = render(
+      <FloatingToolbar editor={editor} noteId="note" userId="user" />
+    )
     const button = container.querySelector('button') as HTMLButtonElement
     fireEvent.keyDown(button, { key: 'Enter' })
     expect(run).toHaveBeenCalled()
