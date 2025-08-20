@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Header from '@/components/Header'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://stratella.vercel.app'),
   title: 'Stratella',
   description: 'All your tasks from every note, in one place. Markdown in, clarity out.',
   openGraph: {
