@@ -9,6 +9,7 @@ import TaskItem from '@tiptap/extension-task-item'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
+import DragHandle from '@tiptap/extension-drag-handle'
 
 export interface InlineEditorProps {
   noteId: string
@@ -18,7 +19,7 @@ export interface InlineEditorProps {
 
 export const AUTOSAVE_THROTTLE_MS = 3000
 
-export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
+export function createInlineEditorExtensions() {
   const TaskItemExt = TaskItem.extend({
     addProseMirrorPlugins() {
       const name = this.name
@@ -45,14 +46,19 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
     },
   })
 
+  return [
+    StarterKit.configure({ history: {} }),
+    TaskList,
+    TaskItemExt,
+    Placeholder,
+    Markdown,
+    DragHandle,
+  ]
+}
+
+export default function InlineEditor({ noteId, markdown, onChange }: InlineEditorProps) {
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ history: {} }),
-      TaskList,
-      TaskItemExt,
-      Placeholder,
-      Markdown,
-    ],
+    extensions: createInlineEditorExtensions(),
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
