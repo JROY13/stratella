@@ -14,6 +14,7 @@ describe('list item input rules', () => {
     const json = editor.getJSON()
     expect(json.content?.[0].type).toBe('bulletList')
     expect(json.content?.[0].content).toHaveLength(2)
+    editor.destroy()
   })
 
   it('Enter on empty item exits the list', () => {
@@ -29,6 +30,7 @@ describe('list item input rules', () => {
     expect(json.content?.[0].type).toBe('bulletList')
     expect(json.content?.[0].content).toHaveLength(1)
     expect(json.content?.[1].type).toBe('paragraph')
+    editor.destroy()
   })
 
   it('Backspace at start converts item to paragraph', () => {
@@ -44,5 +46,6 @@ describe('list item input rules', () => {
     const json = editor.getJSON()
     expect(json.content?.[0].type).toBe('paragraph')
     expect(json.content?.[0].content?.[0].text).toBe('one')
+    editor.destroy()
   })
 })
