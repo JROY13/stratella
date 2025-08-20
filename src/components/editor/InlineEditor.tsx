@@ -12,6 +12,7 @@ import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import DragHandle from '@tiptap/extension-drag-handle'
 import DOMPurify from 'dompurify'
+import { Extension } from '@tiptap/core'
 
 export interface InlineEditorProps {
   noteId: string
@@ -107,6 +108,35 @@ export function createInlineEditorExtensions() {
     },
   })
 
+  const ArrowNavigation = Extension.create({
+    addKeyboardShortcuts() {
+      return {
+        ArrowUp: () => {
+          const { state, commands } = this.editor
+          const { $from } = state.selection
+          if ($from.parentOffset === 0) {
+            const prevPos = Math.max(0, $from.before() - 1)
+            const resolved = state.doc.resolve(prevPos)
+            commands.focus(resolved.pos)
+            return true
+          }
+          return false
+        },
+        ArrowDown: () => {
+          const { state, commands } = this.editor
+          const { $from } = state.selection
+          if ($from.parentOffset === $from.parent.content.size) {
+            const nextPos = Math.min(state.doc.content.size, $from.after())
+            const resolved = state.doc.resolve(nextPos)
+            commands.focus(resolved.pos)
+            return true
+          }
+          return false
+        },
+      }
+    },
+  })
+
   return [
     StarterKit.configure({ history: {}, listItem: false }),
     ListItemExt,
@@ -118,6 +148,7 @@ export function createInlineEditorExtensions() {
       transformPastedText: true, // enables markdown parser with escape support
     }),
     DragHandle,
+    ArrowNavigation,
   ]
 }
 
