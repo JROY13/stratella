@@ -11,9 +11,20 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import DragHandle from '@tiptap/extension-drag-handle'
-import DOMPurify from 'dompurify'
 import { Extension } from '@tiptap/core'
 import FloatingToolbar from './FloatingToolbar'
+
+type DOMPurifyType = typeof import('dompurify')
+let DOMPurifyInstance: DOMPurifyType | null = null
+async function getDOMPurify(): Promise<DOMPurifyType> {
+  if (DOMPurifyInstance) return DOMPurifyInstance
+  if (typeof window === 'undefined') {
+    throw new Error('DOMPurify is only available in the browser')
+  }
+  const mod = await import('dompurify')
+  DOMPurifyInstance = mod.default
+  return DOMPurifyInstance
+}
 
 export interface InlineEditorProps {
   noteId: string
@@ -147,19 +158,27 @@ export function createInlineEditorExtensions() {
     },
   })
 
-  return [
-    StarterKit.configure({ history: {}, listItem: false }),
-    ListItemExt,
-    TaskList,
-    TaskItemExt,
-    Placeholder,
-    Markdown.configure({
-      html: false,
-      transformPastedText: true, // enables markdown parser with escape support
-    }),
-    DragHandle,
-    ArrowNavigation,
-  ]
+  return {
+    extensions: [
+      StarterKit.configure({ history: {}, listItem: false }),
+      ListItemExt,
+      TaskList,
+      TaskItemExt,
+      Placeholder,
+      Markdown.configure({
+        html: false,
+        transformPastedText: true, // enables markdown parser with escape support
+      }),
+      DragHandle,
+      ArrowNavigation,
+    ],
+    editorProps: {
+      transformPastedHTML: async (html: string) => {
+        const DOMPurify = await getDOMPurify()
+        return DOMPurify.sanitize(html)
+      },
+    },
+  }
 }
 
 export default function InlineEditor({
@@ -167,13 +186,14 @@ export default function InlineEditor({
   markdown,
   onChange,
 }: InlineEditorProps) {
+  const { extensions, editorProps } = createInlineEditorExtensions()
   const editor = useEditor({
-    extensions: createInlineEditorExtensions(),
+    extensions,
     editorProps: {
+      ...editorProps,
       attributes: {
         class: 'focus:outline-none',
       },
-      transformPastedHTML: (html) => DOMPurify.sanitize(html),
     },
   })
 
@@ -196,10 +216,11 @@ export default function InlineEditor({
   React.useEffect(() => {
     if (!editor) return
     const el = editor.view.dom as HTMLElement
-    const handlePaste = (event: ClipboardEvent) => {
+    const handlePaste = async (event: ClipboardEvent) => {
       const html = event.clipboardData?.getData('text/html')
       if (html) {
         event.preventDefault()
+        const DOMPurify = await getDOMPurify()
         const sanitized = DOMPurify.sanitize(html)
         editor.view.pasteHTML(sanitized)
       }
