@@ -2,13 +2,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-Copy the example environment file and update it with your Supabase project details:
+Copy the example environment file and update it with your Supabase project details and any analytics keys:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Replace the placeholder values with the real `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from the [Supabase dashboard](https://supabase.com/dashboard).
+Replace the placeholder values with the real `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from the [Supabase dashboard](https://supabase.com/dashboard). To enable analytics, also set `NEXT_PUBLIC_POSTHOG_KEY` and, if using a self-hosted instance, `NEXT_PUBLIC_POSTHOG_HOST`.
 
 Then, run the development server:
 
