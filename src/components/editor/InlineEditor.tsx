@@ -193,8 +193,14 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
 
   React.useEffect(() => {
     if (!editor) return
-    const doc = editor.storage.markdown.parse(markdown)
-    editor.commands.setContent(doc)
+    try {
+      const doc = editor.storage.markdown.parser.parse(markdown ?? '')
+      editor.commands.setContent(doc)
+    } catch (err) {
+      console.error(err)
+      const empty = editor.storage.markdown.parser.parse('')
+      editor.commands.setContent(empty)
+    }
   }, [editor, markdown])
 
   const [status, setStatus] = React.useState<SaveStatus>('saved')
