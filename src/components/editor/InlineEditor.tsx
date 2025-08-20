@@ -21,6 +21,33 @@ export interface InlineEditorProps {
 
 export const AUTOSAVE_THROTTLE_MS = 3000
 
+export type SaveStatus = 'saving' | 'saved' | 'retrying'
+
+export function saveWithRetry(
+  fn: () => Promise<void>,
+  setStatus: (s: SaveStatus) => void,
+  attemptRef: React.MutableRefObject<number>,
+  retryTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+): Promise<void> {
+  return new Promise(resolve => {
+    const attempt = async () => {
+      setStatus(attemptRef.current === 0 ? 'saving' : 'retrying')
+      try {
+        await fn()
+        attemptRef.current = 0
+        setStatus('saved')
+        resolve()
+      } catch {
+        attemptRef.current += 1
+        setStatus('retrying')
+        const delay = Math.min(1000 * 2 ** (attemptRef.current - 1), 30000)
+        retryTimeoutRef.current = setTimeout(attempt, delay)
+      }
+    }
+    attempt()
+  })
+}
+
 export function createInlineEditorExtensions() {
   const TaskItemExt = TaskItem.extend({
     addProseMirrorPlugins() {
@@ -128,7 +155,18 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
     editor.commands.setContent(doc)
   }, [editor, markdown])
 
+  const [status, setStatus] = React.useState<SaveStatus>('saved')
   const saveTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const retryTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const attempts = React.useRef(0)
+
+  const runSave = React.useCallback((md: string) => {
+    if (retryTimeout.current) {
+      clearTimeout(retryTimeout.current)
+      retryTimeout.current = null
+    }
+    saveWithRetry(() => saveNoteInline(noteId, md), setStatus, attempts, retryTimeout)
+  }, [noteId])
 
   React.useEffect(() => {
     if (!editor) return
@@ -136,15 +174,27 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
       const md = editor.storage.markdown.getMarkdown()
       onChange?.(md)
       if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      if (retryTimeout.current) {
+        clearTimeout(retryTimeout.current)
+        retryTimeout.current = null
+        attempts.current = 0
+      }
+      setStatus('saving')
       saveTimeout.current = setTimeout(() => {
-        saveNoteInline(noteId, md)
+        const currentMd = editor.storage.markdown.getMarkdown()
+        runSave(currentMd)
       }, AUTOSAVE_THROTTLE_MS)
     }
     const blurHandler = () => {
       const md = editor.storage.markdown.getMarkdown()
       onChange?.(md)
       if (saveTimeout.current) clearTimeout(saveTimeout.current)
-      saveNoteInline(noteId, md)
+      if (retryTimeout.current) {
+        clearTimeout(retryTimeout.current)
+        retryTimeout.current = null
+        attempts.current = 0
+      }
+      runSave(md)
     }
     editor.on('update', updateHandler)
     editor.on('blur', blurHandler)
@@ -152,12 +202,20 @@ export default function InlineEditor({ noteId, markdown, onChange }: InlineEdito
       editor.off('update', updateHandler)
       editor.off('blur', blurHandler)
       if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      if (retryTimeout.current) clearTimeout(retryTimeout.current)
     }
-  }, [editor, noteId, onChange])
+  }, [editor, noteId, onChange, runSave])
 
   return (
-    <div className="prose prose-neutral dark:prose-invert max-w-none">
-      <EditorContent editor={editor} />
+    <div className="space-y-1">
+      <div className="prose prose-neutral dark:prose-invert max-w-none">
+        <EditorContent editor={editor} />
+      </div>
+      <div className="text-xs text-muted-foreground text-right h-4">
+        {status === 'saving' && 'Saving…'}
+        {status === 'saved' && 'Saved'}
+        {status === 'retrying' && 'Retrying'}
+      </div>
     </div>
   )
 }
