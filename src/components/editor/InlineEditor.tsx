@@ -6,6 +6,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import ListItem from '@tiptap/extension-list-item'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
@@ -46,8 +47,41 @@ export function createInlineEditorExtensions() {
     },
   })
 
+  const ListItemExt = ListItem.extend({
+    addKeyboardShortcuts() {
+      return {
+        ...this.parent?.(),
+        Enter: () => {
+          if (!this.editor.isActive('listItem')) {
+            return false
+          }
+
+          const { $from } = this.editor.state.selection
+          const isEmpty = $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0
+
+          if (isEmpty) {
+            return this.editor.commands.liftListItem(this.name)
+          }
+
+          return this.editor.commands.splitListItem(this.name)
+        },
+        Backspace: () => {
+          const { selection } = this.editor.state
+          const { $from, empty } = selection
+
+          if (!empty || !$from.parentOffset || !this.editor.isActive('listItem')) {
+            return false
+          }
+
+          return this.editor.commands.liftListItem(this.name)
+        },
+      }
+    },
+  })
+
   return [
-    StarterKit.configure({ history: {} }),
+    StarterKit.configure({ history: {}, listItem: false }),
+    ListItemExt,
     TaskList,
     TaskItemExt,
     Placeholder,
