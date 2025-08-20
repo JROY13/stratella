@@ -36,10 +36,14 @@ export default async function NotePage({
     redirect('/notes')
   }
 
+  if (note.body == null) {
+    console.warn(`Note ${noteId} has no body`)
+  }
+
   return (
     <div className="space-y-4">
       <Input name="title" defaultValue={note.title} className="text-lg font-medium" />
-      <InlineEditor noteId={noteId} markdown={note.body} />
+      <InlineEditor noteId={noteId} markdown={note.body ?? ''} />
       <form action={onDelete}>
         <Button type="submit" variant="outline">Delete</Button>
       </form>
