@@ -47,7 +47,8 @@ export default async function NotePage({
       <Input
         name="title"
         defaultValue={note.title}
-        className="text-3xl font-bold"
+        variant="title"
+        className="text-3xl md:text-3xl font-bold h-auto py-0"
       />
       <InlineEditor noteId={noteId} html={body} />
       <form action={onDelete}>
