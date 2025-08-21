@@ -4,36 +4,27 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
 export const dynamic = 'force-dynamic'
 
-const SAMPLE_TITLE = 'Sample Note — Start Here'
-const SAMPLE_BODY = `# Welcome to Stratella
-
-This is a sample note to get you started.
-
-## How tasks work
-
-Write tasks anywhere in your notes using Markdown checkboxes:
-
-- [ ] This is an open task
-- [x] This is a completed task
-- [ ] Add three tasks to this note
-
-Only **unchecked** tasks appear under the **Tasks** view, grouped by the note they live in.  
-Click a task’s checkbox in **Tasks** to mark it done in the original note.
-
-## Quick Markdown cheat sheet
-
-# Heading 1
-## Heading 2, etc.
-**bold**, *italic*
-
-Lists:
-- item
-1. item
-
-Links: [text](https://example.com)
-
-Have fun!
-`
+const SAMPLE_TITLE = 'Start Here'
+const SAMPLE_BODY = `<h1>Welcome to Stratella</h1>
+<p>This note will help you get started with editing and tasks.</p>
+<h2>Formatting Basics</h2>
+<p>Use <strong>bold</strong> and <em>italic</em> text to highlight ideas.</p>
+<h2>Lists</h2>
+<ul>
+  <li><p>Bullet one</p></li>
+  <li><p>Bullet two</p></li>
+</ul>
+<ol>
+  <li><p>First item</p></li>
+  <li><p>Second item</p></li>
+</ol>
+<p>Check out <a href="https://example.com">this link</a> for more info.</p>
+<ul data-type="taskList">
+  <li data-type="taskItem" data-checked="false">
+    <label><input type="checkbox"></label>
+    <div>Try completing this task</div>
+  </li>
+</ul>`
 
 export async function POST() {
   const supabase = createRouteHandlerClient({ cookies })
