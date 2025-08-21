@@ -2,11 +2,10 @@ export const dynamic = 'force-dynamic'
 
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createNote } from '@/app/actions'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NotesList } from './NotesList'
 
 export default async function NotesPage() {
   const supabase = await supabaseServer()
@@ -31,20 +30,7 @@ export default async function NotesPage() {
         <Button type="submit">Add</Button>
       </form>
 
-      <div className="grid gap-3">
-        {(notes ?? []).map(n => (
-          <Link key={n.id} href={`/notes/${n.id}`}>
-            <Card className="hover:bg-accent/30 transition">
-              <CardContent className="p-4">
-                <div className="font-medium">{n.title || 'Untitled'}</div>
-                <div className="text-xs text-muted-foreground">
-                  Updated {new Date(n.updated_at).toUTCString()}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
+      <NotesList notes={notes ?? []} />
     </div>
   )
 }
