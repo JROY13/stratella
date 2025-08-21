@@ -6,6 +6,7 @@ import { createNote } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NotesList } from './NotesList'
+import { countOpenTasks } from '@/lib/taskparse'
 
 export default async function NotesPage() {
   const supabase = await supabaseServer()
@@ -16,6 +17,13 @@ export default async function NotesPage() {
     .from('notes')
     .select('id,title,updated_at,body')
     .order('updated_at', { ascending: false })
+
+  const enriched = (notes ?? []).map(n => ({
+    id: n.id,
+    title: n.title,
+    updated_at: n.updated_at,
+    openTasks: countOpenTasks(n.body || '')
+  }))
 
   async function newNote(formData: FormData) {
     'use server'
@@ -30,7 +38,7 @@ export default async function NotesPage() {
         <Button type="submit">Add</Button>
       </form>
 
-      <NotesList notes={notes ?? []} />
+      <NotesList notes={enriched} />
     </div>
   )
 }

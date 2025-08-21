@@ -3,13 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { extractTasksFromHtml } from '@/lib/taskparse'
-
 type Note = {
   id: string
   title: string | null
   updated_at: string
-  body: string | null
+  openTasks: number
 }
 
 type View = 'card' | 'grid' | 'list'
@@ -37,8 +35,6 @@ export function NotesList({ notes }: { notes: Note[] }) {
       {view === 'list' ? (
         <ul className="divide-y">
           {notes.map(n => {
-            const openTasks = extractTasksFromHtml(n.body || '')
-              .filter(t => !t.checked).length
             const date = new Date(n.updated_at).toUTCString()
             return (
               <li key={n.id}>
@@ -48,7 +44,7 @@ export function NotesList({ notes }: { notes: Note[] }) {
                 >
                   <span className="font-medium">{n.title || 'Untitled'}</span>
                   <span className="text-xs text-muted-foreground">
-                    Updated {date} • {openTasks} open tasks
+                    Updated {date} • {n.openTasks} open tasks
                   </span>
                 </Link>
               </li>
@@ -58,8 +54,6 @@ export function NotesList({ notes }: { notes: Note[] }) {
       ) : (
         <div className={gridClass}>
           {notes.map(n => {
-            const openTasks = extractTasksFromHtml(n.body || '')
-              .filter(t => !t.checked).length
             const date = new Date(n.updated_at).toUTCString()
             return (
               <Link key={n.id} href={`/notes/${n.id}`}>
@@ -67,7 +61,7 @@ export function NotesList({ notes }: { notes: Note[] }) {
                   <CardContent className="p-4">
                     <div className="font-medium">{n.title || 'Untitled'}</div>
                     <div className="text-xs text-muted-foreground">
-                      Updated {date} • {openTasks} open tasks
+                      Updated {date} • {n.openTasks} open tasks
                     </div>
                   </CardContent>
                 </Card>
