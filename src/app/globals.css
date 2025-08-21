@@ -142,12 +142,15 @@ ul[data-type="taskList"] {
 }
 
 ul[data-type="taskList"] li[data-type="taskItem"] {
-  @apply flex items-center gap-2 py-1;
+  @apply flex items-start gap-2;
 }
 
-ul[data-type="taskList"] li[data-type="taskItem"] label,
-ul[data-type="taskList"] li[data-type="taskItem"] div {
-  @apply flex items-center;
+ul[data-type="taskList"] li[data-type="taskItem"] > label {
+  @apply flex items-center m-0;
+}
+
+ul[data-type="taskList"] li[data-type="taskItem"] > div {
+  @apply flex-1;
 }
 
 .editor-prose :where(p, li) {
