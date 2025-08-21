@@ -3,9 +3,7 @@ export const dynamic = "force-dynamic";
 import { supabaseServer } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { deleteNote } from "@/app/actions";
-import { Button } from "@/components/ui/button";
-import InlineEditor from "@/components/editor/InlineEditor";
-import NoteTitleInput from "@/components/NoteTitleInput";
+import NoteClient from "./NoteClient";
 import { extractTasksFromHtml } from "@/lib/taskparse";
 
 export default async function NotePage({
@@ -52,17 +50,14 @@ export default async function NotePage({
   }
 
   return (
-    <div className="space-y-4">
-        <NoteTitleInput noteId={noteId} initialTitle={note.title} />
-      <div className="text-sm text-muted-foreground">
-        Created {created} • Modified {modified} • {openTasks} open tasks
-      </div>
-      <InlineEditor noteId={noteId} html={body} />
-      <form action={onDelete}>
-        <Button type="submit" variant="outline">
-          Delete
-        </Button>
-      </form>
-    </div>
+    <NoteClient
+      noteId={noteId}
+      initialTitle={note.title ?? ""}
+      html={body}
+      created={created}
+      modified={modified}
+      openTasks={openTasks}
+      onDelete={onDelete}
+    />
   );
 }
