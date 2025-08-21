@@ -2,7 +2,6 @@
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -132,7 +131,17 @@
 }
 
 .drag-handle::before {
-  content: '⋮⋮';
+  content: "⋮⋮";
   font-size: 0.5rem;
   line-height: 1;
+}
+
+ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul[data-type="taskList"] .task-list-item {
+  list-style: none;
+  @apply flex items-center gap-2 py-1;
 }
