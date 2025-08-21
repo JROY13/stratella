@@ -1,55 +1,64 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { BubbleMenu, type Editor } from '@tiptap/react'
+import * as React from "react";
+import { BubbleMenu, type Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
+  Heading1,
   Heading2,
+  Heading3,
   List,
   ListOrdered,
   CheckSquare,
   Quote,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { track } from '@/lib/analytics'
+import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 
 export interface FloatingToolbarProps {
-  editor: Editor | null
-  noteId: string
-  userId: string | null
+  editor: Editor | null;
+  noteId: string;
+  userId: string | null;
 }
 
-export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps) {
-  if (!editor) return null
+export function FloatingToolbar({
+  editor,
+  noteId,
+  userId,
+}: FloatingToolbarProps) {
+  if (!editor) return null;
 
   const getBlockId = () => {
-    const sel = editor.state?.selection
-    const from = sel?.$from
-    return (from?.parent?.attrs && from.parent.attrs.id) || (from ? String(from.before()) : null)
-  }
+    const sel = editor.state?.selection;
+    const from = sel?.$from;
+    return (
+      (from?.parent?.attrs && from.parent.attrs.id) ||
+      (from ? String(from.before()) : null)
+    );
+  };
 
   const handleBold = () => {
-    editor.chain().focus().toggleBold().run()
-    track('editor.toolbar.bold', {
+    editor.chain().focus().toggleBold().run();
+    track("editor.toolbar.bold", {
       note_id: noteId,
       block_id: getBlockId(),
       user_id: userId,
-    })
-  }
+    });
+  };
 
   const handleToggleTaskList = () => {
-    const wasActive = editor.isActive('taskList')
-    editor.chain().focus().toggleTaskList().run()
+    const wasActive = editor.isActive("taskList");
+    editor.chain().focus().toggleTaskList().run();
     if (!wasActive) {
-      track('editor.checklist.create', {
+      track("editor.checklist.create", {
         note_id: noteId,
         block_id: getBlockId(),
         user_id: userId,
-      })
+      });
     }
-  }
+  };
 
   return (
     <BubbleMenu
@@ -66,12 +75,12 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         <Button
           type="button"
           size="icon"
-          variant={editor.isActive('bold') ? 'default' : 'ghost'}
+          variant={editor.isActive("bold") ? "default" : "ghost"}
           onClick={handleBold}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              handleBold()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleBold();
             }
           }}
         >
@@ -80,12 +89,12 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         <Button
           type="button"
           size="icon"
-          variant={editor.isActive('italic') ? 'default' : 'ghost'}
+          variant={editor.isActive("italic") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              editor.chain().focus().toggleItalic().run()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleItalic().run();
             }
           }}
         >
@@ -95,15 +104,33 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
           type="button"
           size="icon"
           variant={
-            editor.isActive('heading', { level: 2 }) ? 'default' : 'ghost'
+            editor.isActive("heading", { level: 1 }) ? "default" : "ghost"
+          }
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 1 }).run();
+            }
+          }}
+        >
+          <Heading1 className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant={
+            editor.isActive("heading", { level: 2 }) ? "default" : "ghost"
           }
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
             }
           }}
         >
@@ -112,12 +139,30 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         <Button
           type="button"
           size="icon"
-          variant={editor.isActive('bulletList') ? 'default' : 'ghost'}
+          variant={
+            editor.isActive("heading", { level: 3 }) ? "default" : "ghost"
+          }
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 3 }).run();
+            }
+          }}
+        >
+          <Heading3 className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant={editor.isActive("bulletList") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              editor.chain().focus().toggleBulletList().run()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleBulletList().run();
             }
           }}
         >
@@ -126,12 +171,12 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         <Button
           type="button"
           size="icon"
-          variant={editor.isActive('orderedList') ? 'default' : 'ghost'}
+          variant={editor.isActive("orderedList") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              editor.chain().focus().toggleOrderedList().run()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleOrderedList().run();
             }
           }}
         >
@@ -140,12 +185,12 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         <Button
           type="button"
           size="icon"
-          variant={editor.isActive('taskList') ? 'default' : 'ghost'}
+          variant={editor.isActive("taskList") ? "default" : "ghost"}
           onClick={handleToggleTaskList}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              handleToggleTaskList()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleToggleTaskList();
             }
           }}
         >
@@ -154,12 +199,12 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         <Button
           type="button"
           size="icon"
-          variant={editor.isActive('blockquote') ? 'default' : 'ghost'}
+          variant={editor.isActive("blockquote") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              editor.chain().focus().toggleBlockquote().run()
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editor.chain().focus().toggleBlockquote().run();
             }
           }}
         >
@@ -167,8 +212,7 @@ export function FloatingToolbar({ editor, noteId, userId }: FloatingToolbarProps
         </Button>
       </div>
     </BubbleMenu>
-  )
+  );
 }
 
-export default FloatingToolbar
-
+export default FloatingToolbar;
