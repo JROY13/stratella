@@ -247,12 +247,12 @@ export default function InlineEditor({
 
     try {
       editor.commands.setContent(source, false, {
-        parseOptions: { preserveWhitespace: true },
+        preserveWhitespace: true,
       });
     } catch (err) {
       console.error("Failed to set HTML", err);
       editor.commands.setContent("", false, {
-        parseOptions: { preserveWhitespace: true },
+        preserveWhitespace: true,
       });
     }
   }, [editor, html]);
