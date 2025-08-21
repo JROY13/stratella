@@ -3,8 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
+import { extractTasksFromHtml } from '@/lib/taskparse'
 
-type Note = { id: string; title: string | null; updated_at: string }
+type Note = {
+  id: string
+  title: string | null
+  updated_at: string
+  body: string | null
+}
 
 type View = 'card' | 'grid' | 'list'
 
@@ -30,34 +36,44 @@ export function NotesList({ notes }: { notes: Note[] }) {
 
       {view === 'list' ? (
         <ul className="divide-y">
-          {notes.map(n => (
-            <li key={n.id}>
-              <Link
-                href={`/notes/${n.id}`}
-                className="flex items-center justify-between py-2"
-              >
-                <span className="font-medium">{n.title || 'Untitled'}</span>
-                <span className="text-xs text-muted-foreground">
-                  Updated {new Date(n.updated_at).toUTCString()}
-                </span>
-              </Link>
-            </li>
-          ))}
+          {notes.map(n => {
+            const openTasks = extractTasksFromHtml(n.body || '')
+              .filter(t => !t.checked).length
+            const date = new Date(n.updated_at).toUTCString()
+            return (
+              <li key={n.id}>
+                <Link
+                  href={`/notes/${n.id}`}
+                  className="flex items-center justify-between py-2"
+                >
+                  <span className="font-medium">{n.title || 'Untitled'}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Updated {date} • {openTasks} open tasks
+                  </span>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       ) : (
         <div className={gridClass}>
-          {notes.map(n => (
-            <Link key={n.id} href={`/notes/${n.id}`}>
-              <Card className="hover:bg-accent/30 transition">
-                <CardContent className="p-4">
-                  <div className="font-medium">{n.title || 'Untitled'}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Updated {new Date(n.updated_at).toUTCString()}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {notes.map(n => {
+            const openTasks = extractTasksFromHtml(n.body || '')
+              .filter(t => !t.checked).length
+            const date = new Date(n.updated_at).toUTCString()
+            return (
+              <Link key={n.id} href={`/notes/${n.id}`}>
+                <Card className="hover:bg-accent/30 transition">
+                  <CardContent className="p-4">
+                    <div className="font-medium">{n.title || 'Untitled'}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Updated {date} • {openTasks} open tasks
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

@@ -14,7 +14,7 @@ export default async function NotesPage() {
 
   const { data: notes } = await supabase
     .from('notes')
-    .select('id,title,updated_at')
+    .select('id,title,updated_at,body')
     .order('updated_at', { ascending: false })
 
   async function newNote(formData: FormData) {
