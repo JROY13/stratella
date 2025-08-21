@@ -7,10 +7,7 @@ import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import ListItem from "@tiptap/extension-list-item";
-import TaskItemMarkdown from "tiptap-markdown/src/extensions/nodes/task-item";
-import ListItemMarkdown from "tiptap-markdown/src/extensions/nodes/list-item";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Markdown } from "tiptap-markdown";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import DragHandle from "@tiptap/extension-drag-handle";
 import { Extension } from "@tiptap/core";
@@ -28,8 +25,8 @@ async function getDOMPurify(): Promise<DOMPurifyType> {
 
 export interface InlineEditorProps {
   noteId: string;
-  markdown: string;
-  onChange?: (markdown: string) => void;
+  html: string;
+  onChange?: (html: string) => void;
 }
 
 export const AUTOSAVE_THROTTLE_MS = 3000;
@@ -63,12 +60,6 @@ export function saveWithRetry(
 
 export function createInlineEditorExtensions() {
   const TaskItemExt = TaskItem.extend({
-    addStorage() {
-      return {
-        ...this.parent?.(),
-        ...TaskItemMarkdown.storage,
-      };
-    },
     addProseMirrorPlugins() {
       const name = this.name;
       return [
@@ -98,12 +89,6 @@ export function createInlineEditorExtensions() {
   });
 
   const ListItemExt = ListItem.extend({
-    addStorage() {
-      return {
-        ...this.parent?.(),
-        ...ListItemMarkdown.storage,
-      };
-    },
     addKeyboardShortcuts() {
       return {
         ...this.parent?.(),
@@ -176,10 +161,6 @@ export function createInlineEditorExtensions() {
     TaskList,
     TaskItemExt,
     Placeholder,
-    Markdown.configure({
-      html: false,
-      transformPastedText: true, // enables markdown parser with escape support
-    }),
     DragHandle,
     ArrowNavigation,
   ];
@@ -187,7 +168,7 @@ export function createInlineEditorExtensions() {
 
 export default function InlineEditor({
   noteId,
-  markdown,
+  html,
   onChange,
 }: InlineEditorProps) {
   const editor = useEditor({
@@ -243,23 +224,11 @@ export default function InlineEditor({
   React.useEffect(() => {
     if (!editor) return;
 
-    const source = markdown || "";
-
-    try {
-      const parse =
-        editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
-        ((md: string) => editor.storage.markdown.parser.parse(md));
-      const doc = parse(source);
-      editor.commands.setContent(doc);
-    } catch (err) {
-      console.error("Failed to parse markdown", err);
-      const parseEmpty =
-        editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
-        ((md: string) => editor.storage.markdown.parser.parse(md));
-      const empty = parseEmpty("");
-      editor.commands.setContent(empty);
-    }
-  }, [editor, markdown]);
+    const source = html || "";
+    editor.commands.setContent(source, {
+      parseOptions: { preserveWhitespace: true },
+    });
+  }, [editor, html]);
 
   const [status, setStatus] = React.useState<SaveStatus>("saved");
   const saveTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -267,13 +236,13 @@ export default function InlineEditor({
   const attempts = React.useRef(0);
 
   const runSave = React.useCallback(
-    (md: string) => {
+    (content: string) => {
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
       }
       saveWithRetry(
-        () => saveNoteInline(noteId, md, { revalidate: false }),
+        () => saveNoteInline(noteId, content, { revalidate: false }),
         setStatus,
         attempts,
         retryTimeout,
@@ -285,8 +254,8 @@ export default function InlineEditor({
   React.useEffect(() => {
     if (!editor) return;
     const updateHandler = () => {
-      const md = editor.storage.markdown.getMarkdown();
-      onChange?.(md);
+      const current = editor.getHTML();
+      onChange?.(current);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
@@ -295,20 +264,20 @@ export default function InlineEditor({
       }
       setStatus("saving");
       saveTimeout.current = setTimeout(() => {
-        const currentMd = editor.storage.markdown.getMarkdown();
-        runSave(currentMd);
+        const html = editor.getHTML();
+        runSave(html);
       }, AUTOSAVE_THROTTLE_MS);
     };
     const blurHandler = () => {
-      const md = editor.storage.markdown.getMarkdown();
-      onChange?.(md);
+      const current = editor.getHTML();
+      onChange?.(current);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
         attempts.current = 0;
       }
-      runSave(md);
+      runSave(current);
     };
     editor.on("update", updateHandler);
     editor.on("blur", blurHandler);

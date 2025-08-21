@@ -2,7 +2,6 @@
 
 import { supabaseServer } from '@/lib/supabase-server'
 import { extractTasks, toggleTaskInMarkdown } from '@/lib/taskparse'
-import { normalizeTasks } from '@/lib/markdown'
 import { revalidatePath } from 'next/cache'
 
 export async function requireUser() {
@@ -20,8 +19,7 @@ export async function createNote(title: string) {
 
 export async function saveNote(id: string, title: string, body: string) {
   const { supabase, user } = await requireUser()
-  const normalized = normalizeTasks(body)
-  await supabase.from('notes').update({ title, body: normalized }).eq('id', id).eq('user_id', user.id)
+  await supabase.from('notes').update({ title, body }).eq('id', id).eq('user_id', user.id)
   revalidatePath(`/notes/${id}`)
   revalidatePath('/notes')
 }
@@ -32,8 +30,7 @@ export async function saveNoteInline(
   opts?: { revalidate?: boolean },
 ) {
   const { supabase, user } = await requireUser()
-  const normalized = normalizeTasks(body)
-  await supabase.from('notes').update({ body: normalized }).eq('id', id).eq('user_id', user.id)
+  await supabase.from('notes').update({ body }).eq('id', id).eq('user_id', user.id)
   const { revalidate = true } = opts ?? {}
   if (revalidate !== false) {
     revalidatePath(`/notes/${id}`)

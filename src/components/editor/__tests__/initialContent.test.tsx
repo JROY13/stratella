@@ -27,21 +27,21 @@ vi.mock('@tiptap/extension-drag-handle', async () => {
 })
 
 describe('InlineEditor initialization', () => {
-  const renderEditor = (markdown: string | null) => {
+  const renderEditor = (html: string | null) => {
     expect(() =>
-      render(<InlineEditor noteId="note" markdown={markdown as unknown as string} />),
+      render(<InlineEditor noteId="note" html={html as unknown as string} />),
     ).not.toThrow()
   }
 
-  it('initializes with null markdown', () => {
+  it('initializes with null html', () => {
     renderEditor(null)
   })
 
-  it('initializes with empty markdown', () => {
+  it('initializes with empty html', () => {
     renderEditor('')
   })
 
-  it('initializes with invalid markdown', () => {
-    renderEditor('***invalid [markdown')
+  it('initializes with invalid html', () => {
+    renderEditor('<p>unterminated')
   })
 })
