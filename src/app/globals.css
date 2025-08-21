@@ -145,3 +145,13 @@ ul[data-type="taskList"] .task-list-item {
   list-style: none;
   @apply flex items-center gap-2 py-1;
 }
+
+.editor-prose :where(p, li) {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.editor-prose :where(h1, h2, h3, h4, h5, h6) {
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
