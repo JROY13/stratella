@@ -141,9 +141,13 @@ ul[data-type="taskList"] {
   padding-left: 0;
 }
 
-ul[data-type="taskList"] .task-list-item {
-  list-style: none;
+ul[data-type="taskList"] li[data-type="taskItem"] {
   @apply flex items-center gap-2 py-1;
+}
+
+ul[data-type="taskList"] li[data-type="taskItem"] label,
+ul[data-type="taskList"] li[data-type="taskItem"] div {
+  @apply flex items-center;
 }
 
 .editor-prose :where(p, li) {
