@@ -6,11 +6,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import ListItem from "@tiptap/extension-list-item";
-import TaskItemMarkdown from "tiptap-markdown/src/extensions/nodes/task-item";
-import ListItemMarkdown from "tiptap-markdown/src/extensions/nodes/list-item";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Markdown } from "tiptap-markdown";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import DragHandle from "@tiptap/extension-drag-handle";
 import { Extension } from "@tiptap/core";
@@ -63,12 +59,6 @@ export function saveWithRetry(
 
 export function createInlineEditorExtensions() {
   const TaskItemExt = TaskItem.extend({
-    addStorage() {
-      return {
-        ...this.parent?.(),
-        ...TaskItemMarkdown.storage,
-      };
-    },
     addProseMirrorPlugins() {
       const name = this.name;
       return [
@@ -183,50 +173,6 @@ export function createInlineEditorExtensions() {
     },
   });
 
-  const ListItemExt = ListItem.extend({
-    addStorage() {
-      return {
-        ...this.parent?.(),
-        ...ListItemMarkdown.storage,
-      };
-    },
-    addKeyboardShortcuts() {
-      return {
-        ...this.parent?.(),
-        Enter: () => {
-          if (!this.editor.isActive("listItem")) {
-            return false;
-          }
-
-          const { $from } = this.editor.state.selection;
-          const isEmpty =
-            $from.parent.type.name === "paragraph" &&
-            $from.parent.content.size === 0;
-
-          if (isEmpty) {
-            return this.editor.commands.liftListItem(this.name);
-          }
-
-          return this.editor.commands.splitListItem(this.name);
-        },
-        Backspace: () => {
-          const { selection } = this.editor.state;
-          const { $from, empty } = selection;
-
-          if (
-            !empty ||
-            !$from.parentOffset ||
-            !this.editor.isActive("listItem")
-          ) {
-            return false;
-          }
-
-          return this.editor.commands.liftListItem(this.name);
-        },
-      };
-    },
-  });
-
   const ArrowNavigation = Extension.create({
     addKeyboardShortcuts() {
       return {
@@ -257,15 +203,10 @@ export function createInlineEditorExtensions() {
   });
 
   return [
-    StarterKit.configure({ history: {}, listItem: false }),
-    ListItemExt,
+    StarterKit.configure({ history: {} }),
     TaskList,
     TaskItemExt,
     Placeholder,
-    Markdown.configure({
-      html: false,
-      transformPastedText: true, // enables markdown parser with escape support
-    }),
     DragHandle,
     ArrowNavigation,
   ];
