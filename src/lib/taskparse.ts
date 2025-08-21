@@ -1,4 +1,3 @@
-import { JSDOM } from 'jsdom'
 
 // Find markdown checkboxes like "- [ ] Do thing" or "* [x] Done"
 export type TaskHit = {
@@ -71,107 +70,52 @@ export function extractTasks(md: string): TaskHit[] {
   return out
 }
 
-type PMNode = {
-  type?: string
-  attrs?: Record<string, unknown>
-  content?: PMNode[]
-  text?: string
-}
-
-export function extractTasksFromHtml(html: string | PMNode): TaskHit[] {
+export function extractTasksFromHtml(html: string): TaskHit[] {
   const out: TaskHit[] = []
-
-  if (typeof html === 'string') {
-    const dom = new JSDOM(html)
-    const doc = dom.window.document
-    const items = doc.querySelectorAll<HTMLElement>('li[data-type="taskItem"]')
-    items.forEach((el, index) => {
-      const checked = el.getAttribute('data-checked') === 'true'
-      const tags: string[] = []
-      let due = el.getAttribute('data-due') || undefined
-      let status = el.getAttribute('data-status') || undefined
-      const attrTags = el.getAttribute('data-tags')
-      if (attrTags) {
-        attrTags.split(',').forEach(t => {
-          const tag = t.trim()
-          if (tag) tags.push(tag)
-        })
+  const itemRe = /<li[^>]*data-type=["']taskItem["'][^>]*>[\s\S]*?<\/li>/gi
+  let match: RegExpExecArray | null
+  let index = 0
+  while ((match = itemRe.exec(html)) !== null) {
+    const li = match[0]
+    const attrMatch = /^<li([^>]*)>/i.exec(li)
+    const attrStr = attrMatch ? attrMatch[1] : ''
+    const getAttr = (name: string) => {
+      const m = new RegExp(name + '="([^"]*)"').exec(attrStr)
+      return m ? m[1] : undefined
+    }
+    const checked = getAttr('data-checked') === 'true'
+    let due = getAttr('data-due')
+    let status = getAttr('data-status')
+    const tags: string[] = []
+    const attrTags = getAttr('data-tags')
+    if (attrTags) {
+      attrTags.split(',').forEach(t => {
+        const tag = t.trim()
+        if (tag) tags.push(tag)
+      })
+    }
+    let text = /<div[^>]*>([\s\S]*?)<\/div>/i.exec(li)?.[1] ?? ''
+    text = text.replace(/\b(\w+):([^\s<]+)/g, (_m, key: string, value: string) => {
+      switch (key.toLowerCase()) {
+        case 'due':
+          if (!due) due = value
+          break
+        case 'tag':
+          tags.push(value)
+          break
+        case 'status':
+          if (!status) status = value
+          break
       }
-      const div = el.querySelector('div')
-      let text = div?.textContent || ''
-      text = text.replace(/\b(\w+):([^\s]+)/g, (_, key: string, value: string) => {
-        switch (key.toLowerCase()) {
-          case 'due':
-            if (!due) due = value
-            break
-          case 'tag':
-            tags.push(value)
-            break
-          case 'status':
-            if (!status) status = value
-            break
-        }
-        return ''
-      })
-      text = text.replace(/#(\w+)/g, (_m, tag: string) => {
-        tags.push(tag)
-        return ''
-      })
-      text = text.trim()
-      out.push({ text, checked, line: index, tags, due, status })
+      return ''
     })
-    return out
+    text = text.replace(/#(\w+)/g, (_m, tag: string) => {
+      tags.push(tag)
+      return ''
+    })
+    text = text.replace(/<[^>]+>/g, '').trim()
+    out.push({ text, checked, line: index++, tags, due, status })
   }
-
-
-  function walk(node: PMNode | PMNode[] | undefined): void {
-    if (!node) return
-    if (Array.isArray(node)) {
-      node.forEach(walk)
-      return
-    }
-    if (node.type === 'taskItem') {
-      const index = out.length
-      const checked = (node.attrs as { checked?: boolean } | undefined)?.checked ?? false
-      const tags: string[] = []
-      let due: string | undefined = (node.attrs as { due?: string } | undefined)?.due
-      let status: string | undefined = (node.attrs as { status?: string } | undefined)?.status
-      let text = ''
-      const extract = (n: PMNode | PMNode[] | undefined): void => {
-        if (!n) return
-        if (Array.isArray(n)) {
-          n.forEach(extract)
-          return
-        }
-        if (n.text) text += n.text
-        if (n.content) n.content.forEach(extract)
-      }
-      if (node.content) node.content.forEach(extract)
-      text = text.replace(/\b(\w+):([^\s]+)/g, (_: string, key: string, value: string) => {
-        switch (key.toLowerCase()) {
-          case 'due':
-            if (!due) due = value
-            break
-          case 'tag':
-            tags.push(value)
-            break
-          case 'status':
-            if (!status) status = value
-            break
-        }
-        return ''
-      })
-      text = text.replace(/#(\w+)/g, (_m: string, tag: string) => {
-        tags.push(tag)
-        return ''
-      })
-      text = text.trim()
-      out.push({ text, checked, line: index, tags, due, status })
-    }
-    if (node.content) node.content.forEach(walk)
-  }
-
-  walk(html as PMNode)
   return out
 }
 
