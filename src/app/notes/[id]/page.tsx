@@ -4,8 +4,8 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { deleteNote } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import InlineEditor from "@/components/editor/InlineEditor";
+import NoteTitleInput from "@/components/NoteTitleInput";
 import { extractTasksFromHtml } from "@/lib/taskparse";
 
 export default async function NotePage({
@@ -53,12 +53,7 @@ export default async function NotePage({
 
   return (
     <div className="space-y-4">
-      <Input
-        name="title"
-        defaultValue={note.title}
-        variant="title"
-        className="text-3xl md:text-3xl font-bold h-auto py-0 border-0 px-0 focus-visible:ring-0"
-      />
+        <NoteTitleInput noteId={noteId} initialTitle={note.title} />
       <div className="text-sm text-muted-foreground">
         Created {created} • Modified {modified} • {openTasks} open tasks
       </div>
