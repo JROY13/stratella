@@ -49,6 +49,17 @@ export async function saveNoteInline(
   }
 }
 
+export async function updateNoteTitle(id: string, title: string) {
+  const { supabase, user } = await requireUser();
+  await supabase
+    .from("notes")
+    .update({ title })
+    .eq("id", id)
+    .eq("user_id", user.id);
+  revalidatePath(`/notes/${id}`);
+  revalidatePath("/notes");
+}
+
 export async function deleteNote(id: string) {
   const { supabase, user } = await requireUser();
   await supabase.from("notes").delete().eq("id", id).eq("user_id", user.id);
