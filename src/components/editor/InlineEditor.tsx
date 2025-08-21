@@ -28,8 +28,8 @@ async function getDOMPurify(): Promise<DOMPurifyType> {
 
 export interface InlineEditorProps {
   noteId: string;
-  markdown: string;
-  onChange?: (markdown: string) => void;
+  html: string;
+  onChange?: (html: string) => void;
 }
 
 export const AUTOSAVE_THROTTLE_MS = 3000;
@@ -187,7 +187,7 @@ export function createInlineEditorExtensions() {
 
 export default function InlineEditor({
   noteId,
-  markdown,
+  html,
   onChange,
 }: InlineEditorProps) {
   const editor = useEditor({
@@ -243,23 +243,19 @@ export default function InlineEditor({
   React.useEffect(() => {
     if (!editor) return;
 
-    const source = markdown || "";
+    const source = html || "";
 
     try {
-      const parse =
-        editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
-        ((md: string) => editor.storage.markdown.parser.parse(md));
-      const doc = parse(source);
-      editor.commands.setContent(doc);
+      editor.commands.setContent(source, false, {
+        preserveWhitespace: true,
+      });
     } catch (err) {
-      console.error("Failed to parse markdown", err);
-      const parseEmpty =
-        editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
-        ((md: string) => editor.storage.markdown.parser.parse(md));
-      const empty = parseEmpty("");
-      editor.commands.setContent(empty);
+      console.error("Failed to set HTML", err);
+      editor.commands.setContent("", false, {
+        preserveWhitespace: true,
+      });
     }
-  }, [editor, markdown]);
+  }, [editor, html]);
 
   const [status, setStatus] = React.useState<SaveStatus>("saved");
   const saveTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -267,13 +263,13 @@ export default function InlineEditor({
   const attempts = React.useRef(0);
 
   const runSave = React.useCallback(
-    (md: string) => {
+    (html: string) => {
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
       }
       saveWithRetry(
-        () => saveNoteInline(noteId, md, { revalidate: false }),
+        () => saveNoteInline(noteId, html, { revalidate: false }),
         setStatus,
         attempts,
         retryTimeout,
@@ -285,8 +281,8 @@ export default function InlineEditor({
   React.useEffect(() => {
     if (!editor) return;
     const updateHandler = () => {
-      const md = editor.storage.markdown.getMarkdown();
-      onChange?.(md);
+      const current = editor.getHTML();
+      onChange?.(current);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
@@ -295,20 +291,20 @@ export default function InlineEditor({
       }
       setStatus("saving");
       saveTimeout.current = setTimeout(() => {
-        const currentMd = editor.storage.markdown.getMarkdown();
-        runSave(currentMd);
+        const currentHtml = editor.getHTML();
+        runSave(currentHtml);
       }, AUTOSAVE_THROTTLE_MS);
     };
     const blurHandler = () => {
-      const md = editor.storage.markdown.getMarkdown();
-      onChange?.(md);
+      const current = editor.getHTML();
+      onChange?.(current);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
         attempts.current = 0;
       }
-      runSave(md);
+      runSave(current);
     };
     editor.on("update", updateHandler);
     editor.on("blur", blurHandler);

@@ -29,22 +29,18 @@ vi.mock("@tiptap/extension-drag-handle", async () => {
   return { default: actual.Extension.create({ name: "dragHandle" }) };
 });
 
-describe("InlineEditor initialization", () => {
+describe("InlineEditor mounts with malformed HTML", () => {
   const renderEditor = (html: string | null) => {
     expect(() =>
       render(<InlineEditor noteId="note" html={html as unknown as string} />),
     ).not.toThrow();
   };
 
-  it("initializes with null html", () => {
+  it("mounts with null html", () => {
     renderEditor(null);
   });
 
-  it("initializes with empty html", () => {
-    renderEditor("");
-  });
-
-  it("initializes with invalid html", () => {
+  it("mounts with invalid html", () => {
     renderEditor("<p><span");
   });
 });
