@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { extractTasks, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
+import { extractTasksFromHtml, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
 import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   const tasks: (TaskWithNote & { noteTitle: string })[] = []
   for (const n of notes ?? []) {
-    const todos = extractTasks(n.body)
+    const todos = extractTasksFromHtml(n.body)
     tasks.push(
       ...todos.map(t => ({ ...t, noteId: n.id, noteTitle: n.title || 'Untitled' }))
     )

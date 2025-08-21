@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { extractTasks, toggleTaskInMarkdown, filterTasks, TaskWithNote } from './taskparse'
+import {
+  extractTasks,
+  extractTasksFromHtml,
+  toggleTaskInMarkdown,
+  filterTasks,
+  TaskWithNote,
+} from './taskparse'
 
 describe('extractTasks', () => {
   it('finds checked and unchecked tasks', () => {
@@ -53,6 +59,34 @@ describe('extractTasks', () => {
     expect(hit.tags.sort()).toEqual(['home', 'work'])
     expect(hit.status).toBe('waiting')
     expect(hit.text).toBe('task')
+  })
+})
+
+describe('extractTasksFromHtml', () => {
+  it('parses task items and metadata from HTML', () => {
+    const html = `
+      <ul data-type="taskList">
+        <li data-type="taskItem" data-checked="false" data-due="2024-07-01" data-status="waiting" data-tags="home">
+          <label><input type="checkbox"></label>
+          <div>task #work</div>
+        </li>
+        <li data-type="taskItem" data-checked="true">
+          <label><input type="checkbox" checked></label>
+          <div>done tag:home status:done</div>
+        </li>
+      </ul>
+    `
+    const hits = extractTasksFromHtml(html)
+    expect(hits).toHaveLength(2)
+    expect(hits.map(h => h.checked)).toEqual([false, true])
+    const [first, second] = hits
+    expect(first.due).toBe('2024-07-01')
+    expect(first.tags.sort()).toEqual(['home', 'work'])
+    expect(first.status).toBe('waiting')
+    expect(first.text).toBe('task')
+    expect(second.tags).toEqual(['home'])
+    expect(second.status).toBe('done')
+    expect(second.text).toBe('done')
   })
 })
 
