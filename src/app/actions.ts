@@ -3,6 +3,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { JSDOM } from "jsdom";
+import { countOpenTasks } from "@/lib/taskparse";
 
 export async function requireUser() {
   const supabase = await supabaseServer(); // <-- await here
@@ -45,20 +46,29 @@ export async function saveNoteInline(
   id: string,
   html: string,
   opts?: { revalidate?: boolean },
-) {
+): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
-  await supabase
+  const openTasks = countOpenTasks(html);
+  const { data } = await supabase
     .from("notes")
-    .update({ body: html })
+    .update({ body: html, open_tasks: openTasks })
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("updated_at")
+    .single();
   const { revalidate = true } = opts ?? {};
   if (revalidate !== false) {
     revalidatePath(`/notes/${id}`);
     revalidatePath("/notes");
     revalidatePath("/tasks");
   }
+  return { openTasks, updatedAt: data?.updated_at ?? null };
 }
+
+export type SaveNoteInlineResult = {
+  openTasks: number;
+  updatedAt: string | null;
+};
 
 export async function deleteNote(id: string) {
   const { supabase, user } = await requireUser();

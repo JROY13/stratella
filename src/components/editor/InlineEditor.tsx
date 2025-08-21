@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { saveNoteInline } from "@/app/actions";
+import { saveNoteInline, type SaveNoteInlineResult } from "@/app/actions";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
@@ -26,26 +26,27 @@ export interface InlineEditorProps {
   noteId: string;
   html: string;
   onChange?: (html: string) => void;
+  onSaved?: (res: SaveNoteInlineResult) => void;
 }
 
 export const AUTOSAVE_THROTTLE_MS = 3000;
 
 export type SaveStatus = "saving" | "saved" | "retrying";
 
-export function saveWithRetry(
-  fn: () => Promise<void>,
+export function saveWithRetry<T>(
+  fn: () => Promise<T>,
   setStatus: (s: SaveStatus) => void,
   attemptRef: React.MutableRefObject<number>,
   retryTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
-): Promise<void> {
+): Promise<T> {
   return new Promise((resolve) => {
     const attempt = async () => {
       setStatus(attemptRef.current === 0 ? "saving" : "retrying");
       try {
-        await fn();
+        const res = await fn();
         attemptRef.current = 0;
         setStatus("saved");
-        resolve();
+        resolve(res);
       } catch {
         attemptRef.current += 1;
         setStatus("retrying");
@@ -216,6 +217,7 @@ export default function InlineEditor({
   noteId,
   html,
   onChange,
+  onSaved,
 }: InlineEditorProps) {
   const editor = useEditor({
     extensions: createInlineEditorExtensions(),
@@ -295,14 +297,17 @@ export default function InlineEditor({
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
       }
-      saveWithRetry(
+      return saveWithRetry(
         () => saveNoteInline(noteId, html, { revalidate: false }),
         setStatus,
         attempts,
         retryTimeout,
-      );
+      ).then(res => {
+        onSaved?.(res);
+        return res;
+      });
     },
-    [noteId],
+    [noteId, onSaved],
   );
 
   React.useEffect(() => {
@@ -319,7 +324,7 @@ export default function InlineEditor({
       setStatus("saving");
       saveTimeout.current = setTimeout(() => {
         const currentHtml = editor.getHTML();
-        runSave(currentHtml);
+        void runSave(currentHtml);
       }, AUTOSAVE_THROTTLE_MS);
     };
     const blurHandler = () => {
@@ -331,7 +336,7 @@ export default function InlineEditor({
         retryTimeout.current = null;
         attempts.current = 0;
       }
-      runSave(current);
+      void runSave(current);
     };
     editor.on("update", updateHandler);
     editor.on("blur", blurHandler);

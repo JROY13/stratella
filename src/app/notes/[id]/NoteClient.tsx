@@ -25,13 +25,24 @@ export default function NoteClient({
   onDelete,
 }: NoteClientProps) {
   const [title] = React.useState(initialTitle)
+  const [modifiedState, setModifiedState] = React.useState(modified)
+  const [openTasksState, setOpenTasksState] = React.useState(openTasks)
   return (
     <div className="space-y-4">
       <NoteTitleInput noteId={noteId} initialTitle={title} />
       <div className="text-sm text-muted-foreground">
-        Created {created} • Modified {modified} • {openTasks} open tasks
+        Created {created} • Modified {modifiedState} • {openTasksState} open tasks
       </div>
-      <InlineEditor noteId={noteId} html={html} />
+      <InlineEditor
+        noteId={noteId}
+        html={html}
+        onSaved={({ openTasks, updatedAt }) => {
+          setOpenTasksState(openTasks)
+          if (updatedAt) {
+            setModifiedState(new Date(updatedAt).toLocaleDateString())
+          }
+        }}
+      />
       <form action={onDelete}>
         <Button type="submit" variant="outline">
           Delete
