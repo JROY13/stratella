@@ -1,8 +1,8 @@
 "use server";
 
 import { supabaseServer } from "@/lib/supabase-server";
-import { extractTasks, toggleTaskInMarkdown } from "@/lib/taskparse";
 import { revalidatePath } from "next/cache";
+import { JSDOM } from "jsdom";
 
 export async function requireUser() {
   const supabase = await supabaseServer(); // <-- await here
@@ -55,6 +55,21 @@ export async function deleteNote(id: string) {
   revalidatePath("/notes");
 }
 
+function updateTaskHtml(
+  html: string,
+  taskIndex: number,
+  updater: (el: HTMLElement) => void,
+): string {
+  const { window } = new JSDOM("");
+  const parser = new window.DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const tasks = doc.querySelectorAll<HTMLElement>('li[data-type="taskItem"]');
+  const target = tasks[taskIndex];
+  if (!target) return html;
+  updater(target);
+  return doc.body.innerHTML;
+}
+
 async function toggleTask(noteId: string, taskLine: number) {
   const { supabase, user } = await requireUser();
   const { data } = await supabase
@@ -66,11 +81,11 @@ async function toggleTask(noteId: string, taskLine: number) {
 
   if (!data) throw new Error("Note not found");
 
-  const tasks = extractTasks(data.body);
-  const hit = tasks.find((t) => t.line === taskLine);
-  if (!hit) return;
+  const nextBody = updateTaskHtml(data.body, taskLine, (el) => {
+    const checked = el.getAttribute("data-checked") === "true";
+    el.setAttribute("data-checked", checked ? "false" : "true");
+  });
 
-  const nextBody = toggleTaskInMarkdown(data.body, hit);
   await supabase
     .from("notes")
     .update({ body: nextBody })
@@ -99,22 +114,18 @@ export async function setTaskDueFromNote(
     .eq("user_id", user.id)
     .single();
   if (!data) throw new Error("Note not found");
-  const lines = data.body.split("\n");
-  if (taskLine >= lines.length) return;
-  let line = lines[taskLine];
-  if (due) {
-    if (/due:[^\s]+/.test(line)) {
-      line = line.replace(/due:[^\s]+/, `due:${due}`);
+
+  const nextBody = updateTaskHtml(data.body, taskLine, (el) => {
+    if (due) {
+      el.setAttribute("data-due", due);
     } else {
-      line = `${line} due:${due}`;
+      el.removeAttribute("data-due");
     }
-  } else {
-    line = line.replace(/\s*due:[^\s]+/, "");
-  }
-  lines[taskLine] = line;
+  });
+
   await supabase
     .from("notes")
-    .update({ body: lines.join("\n") })
+    .update({ body: nextBody })
     .eq("id", noteId)
     .eq("user_id", user.id);
   revalidatePath("/notes");
