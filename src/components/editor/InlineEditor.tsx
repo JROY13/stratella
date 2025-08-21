@@ -1,24 +1,26 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { saveNoteInline } from '@/app/actions';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import ListItem from '@tiptap/extension-list-item';
-import Placeholder from '@tiptap/extension-placeholder';
-import { Markdown } from 'tiptap-markdown';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import DragHandle from '@tiptap/extension-drag-handle';
-import { Extension } from '@tiptap/core';
-import FloatingToolbar from './FloatingToolbar';
+import React from "react";
+import { saveNoteInline } from "@/app/actions";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import ListItem from "@tiptap/extension-list-item";
+import TaskItemMarkdown from "tiptap-markdown/src/extensions/nodes/task-item";
+import ListItemMarkdown from "tiptap-markdown/src/extensions/nodes/list-item";
+import Placeholder from "@tiptap/extension-placeholder";
+import { Markdown } from "tiptap-markdown";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import DragHandle from "@tiptap/extension-drag-handle";
+import { Extension } from "@tiptap/core";
+import FloatingToolbar from "./FloatingToolbar";
 
-type DOMPurifyType = (typeof import('dompurify'))['default'];
+type DOMPurifyType = (typeof import("dompurify"))["default"];
 let DOMPurify: DOMPurifyType | null = null;
 async function getDOMPurify(): Promise<DOMPurifyType> {
   if (!DOMPurify) {
-    const mod = await import('dompurify');
+    const mod = await import("dompurify");
     DOMPurify = mod.default;
   }
   return DOMPurify;
@@ -32,7 +34,7 @@ export interface InlineEditorProps {
 
 export const AUTOSAVE_THROTTLE_MS = 3000;
 
-export type SaveStatus = 'saving' | 'saved' | 'retrying';
+export type SaveStatus = "saving" | "saved" | "retrying";
 
 export function saveWithRetry(
   fn: () => Promise<void>,
@@ -42,15 +44,15 @@ export function saveWithRetry(
 ): Promise<void> {
   return new Promise((resolve) => {
     const attempt = async () => {
-      setStatus(attemptRef.current === 0 ? 'saving' : 'retrying');
+      setStatus(attemptRef.current === 0 ? "saving" : "retrying");
       try {
         await fn();
         attemptRef.current = 0;
-        setStatus('saved');
+        setStatus("saved");
         resolve();
       } catch {
         attemptRef.current += 1;
-        setStatus('retrying');
+        setStatus("retrying");
         const delay = Math.min(1000 * 2 ** (attemptRef.current - 1), 30000);
         retryTimeoutRef.current = setTimeout(attempt, delay);
       }
@@ -61,15 +63,21 @@ export function saveWithRetry(
 
 export function createInlineEditorExtensions() {
   const TaskItemExt = TaskItem.extend({
+    addStorage() {
+      return {
+        ...this.parent?.(),
+        ...TaskItemMarkdown.storage,
+      };
+    },
     addProseMirrorPlugins() {
       const name = this.name;
       return [
         new Plugin({
-          key: new PluginKey('taskItemClick'),
+          key: new PluginKey("taskItemClick"),
           props: {
             handleClickOn(view, _pos, node, nodePos, event) {
               const el = event.target as HTMLElement;
-              if (node.type.name === name && el.tagName === 'INPUT') {
+              if (node.type.name === name && el.tagName === "INPUT") {
                 event.preventDefault();
                 const checked = !node.attrs.checked;
                 view.dispatch(
@@ -90,17 +98,23 @@ export function createInlineEditorExtensions() {
   });
 
   const ListItemExt = ListItem.extend({
+    addStorage() {
+      return {
+        ...this.parent?.(),
+        ...ListItemMarkdown.storage,
+      };
+    },
     addKeyboardShortcuts() {
       return {
         ...this.parent?.(),
         Enter: () => {
-          if (!this.editor.isActive('listItem')) {
+          if (!this.editor.isActive("listItem")) {
             return false;
           }
 
           const { $from } = this.editor.state.selection;
           const isEmpty =
-            $from.parent.type.name === 'paragraph' &&
+            $from.parent.type.name === "paragraph" &&
             $from.parent.content.size === 0;
 
           if (isEmpty) {
@@ -116,7 +130,7 @@ export function createInlineEditorExtensions() {
           if (
             !empty ||
             !$from.parentOffset ||
-            !this.editor.isActive('listItem')
+            !this.editor.isActive("listItem")
           ) {
             return false;
           }
@@ -180,7 +194,7 @@ export default function InlineEditor({
     extensions: createInlineEditorExtensions(),
     editorProps: {
       attributes: {
-        class: 'focus:outline-none',
+        class: "focus:outline-none",
       },
       transformPastedHTML: (html) =>
         DOMPurify ? DOMPurify.sanitize(html) : html,
@@ -196,11 +210,11 @@ export default function InlineEditor({
   React.useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { supabaseClient } = await import('@/lib/supabase-client');
+        const { supabaseClient } = await import("@/lib/supabase-client");
         const { data } = await supabaseClient.auth.getUser();
         setUserId(data.user?.id ?? null);
       } catch (error) {
-        console.warn('Failed to capture user analytics', error);
+        console.warn("Failed to capture user analytics", error);
       }
     };
 
@@ -211,7 +225,7 @@ export default function InlineEditor({
     if (!editor) return;
     const el = editor.view.dom as HTMLElement;
     const handlePaste = (event: ClipboardEvent) => {
-      const html = event.clipboardData?.getData('text/html');
+      const html = event.clipboardData?.getData("text/html");
       if (html) {
         event.preventDefault();
         void getDOMPurify().then((dp) => {
@@ -220,16 +234,16 @@ export default function InlineEditor({
         });
       }
     };
-    el.addEventListener('paste', handlePaste);
+    el.addEventListener("paste", handlePaste);
     return () => {
-      el.removeEventListener('paste', handlePaste);
+      el.removeEventListener("paste", handlePaste);
     };
   }, [editor]);
 
   React.useEffect(() => {
     if (!editor) return;
 
-    const source = markdown || '';
+    const source = markdown || "";
 
     try {
       const parse =
@@ -238,16 +252,16 @@ export default function InlineEditor({
       const doc = parse(source);
       editor.commands.setContent(doc);
     } catch (err) {
-      console.error('Failed to parse markdown', err);
+      console.error("Failed to parse markdown", err);
       const parseEmpty =
         editor.storage.markdown.parse?.bind(editor.storage.markdown) ||
         ((md: string) => editor.storage.markdown.parser.parse(md));
-      const empty = parseEmpty('');
+      const empty = parseEmpty("");
       editor.commands.setContent(empty);
     }
   }, [editor, markdown]);
 
-  const [status, setStatus] = React.useState<SaveStatus>('saved');
+  const [status, setStatus] = React.useState<SaveStatus>("saved");
   const saveTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const attempts = React.useRef(0);
@@ -279,7 +293,7 @@ export default function InlineEditor({
         retryTimeout.current = null;
         attempts.current = 0;
       }
-      setStatus('saving');
+      setStatus("saving");
       saveTimeout.current = setTimeout(() => {
         const currentMd = editor.storage.markdown.getMarkdown();
         runSave(currentMd);
@@ -296,11 +310,11 @@ export default function InlineEditor({
       }
       runSave(md);
     };
-    editor.on('update', updateHandler);
-    editor.on('blur', blurHandler);
+    editor.on("update", updateHandler);
+    editor.on("blur", blurHandler);
     return () => {
-      editor.off('update', updateHandler);
-      editor.off('blur', blurHandler);
+      editor.off("update", updateHandler);
+      editor.off("blur", blurHandler);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) clearTimeout(retryTimeout.current);
     };
@@ -315,9 +329,9 @@ export default function InlineEditor({
         <EditorContent editor={editor} />
       </div>
       <div className="text-xs text-muted-foreground text-right h-4">
-        {status === 'saving' && 'Saving…'}
-        {status === 'saved' && 'Saved'}
-        {status === 'retrying' && 'Retrying'}
+        {status === "saving" && "Saving…"}
+        {status === "saved" && "Saved"}
+        {status === "retrying" && "Retrying"}
       </div>
     </div>
   );
