@@ -18,7 +18,7 @@ export function NotesList({ notes }: { notes: Note[] }) {
   const gridClass =
     view === 'card'
       ? 'grid grid-cols-1 sm:grid-cols-2 gap-3'
-      : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3'
+      : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr'
 
   return (
     <div className="space-y-3">
@@ -56,9 +56,9 @@ export function NotesList({ notes }: { notes: Note[] }) {
           {notes.map(n => {
             const date = new Date(n.updated_at).toUTCString()
             return (
-              <Link key={n.id} href={`/notes/${n.id}`}>
-                <Card className="hover:bg-accent/30 transition">
-                  <CardContent className="p-4">
+              <Link key={n.id} href={`/notes/${n.id}`} className="block h-full">
+                <Card className="h-full flex flex-col hover:bg-accent/30 transition">
+                  <CardContent className="p-4 flex-1">
                     <div className="font-medium">{n.title || 'Untitled'}</div>
                     <div className="text-xs text-muted-foreground">
                       Updated {date} • {n.openTasks} open tasks
