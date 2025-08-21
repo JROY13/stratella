@@ -33,7 +33,7 @@ export default function Sidebar() {
         </nav>
         <Separator className="my-4" />
         <p className="px-3 text-xs text-muted-foreground">
-          Tip: create tasks with <code>- [ ]</code>
+          Tip: create tasks with [] or by right clicking. These tasks will aggregate in &apos;Tasks&apos;
         </p>
       </div>
     </aside>
