@@ -1,11 +1,13 @@
+import { JSDOM } from 'jsdom'
+
 // Find markdown checkboxes like "- [ ] Do thing" or "* [x] Done"
 export type TaskHit = {
   text: string
   checked: boolean
   line: number
-  start: number
-  end: number
-  mark: string
+  start?: number
+  end?: number
+  mark?: string
   due?: string
   tags: string[]
   status?: string
@@ -69,10 +71,117 @@ export function extractTasks(md: string): TaskHit[] {
   return out
 }
 
-export function toggleTaskInMarkdown(md: string, hit: TaskHit) {
+type PMNode = {
+  type?: string
+  attrs?: Record<string, unknown>
+  content?: PMNode[]
+  text?: string
+}
+
+export function extractTasksFromHtml(html: string | PMNode): TaskHit[] {
+  const out: TaskHit[] = []
+
+  if (typeof html === 'string') {
+    const dom = new JSDOM(html)
+    const doc = dom.window.document
+    const items = doc.querySelectorAll<HTMLElement>('li[data-type="taskItem"]')
+    items.forEach((el, index) => {
+      const checked = el.getAttribute('data-checked') === 'true'
+      const tags: string[] = []
+      let due = el.getAttribute('data-due') || undefined
+      let status = el.getAttribute('data-status') || undefined
+      const attrTags = el.getAttribute('data-tags')
+      if (attrTags) {
+        attrTags.split(',').forEach(t => {
+          const tag = t.trim()
+          if (tag) tags.push(tag)
+        })
+      }
+      const div = el.querySelector('div')
+      let text = div?.textContent || ''
+      text = text.replace(/\b(\w+):([^\s]+)/g, (_, key: string, value: string) => {
+        switch (key.toLowerCase()) {
+          case 'due':
+            if (!due) due = value
+            break
+          case 'tag':
+            tags.push(value)
+            break
+          case 'status':
+            if (!status) status = value
+            break
+        }
+        return ''
+      })
+      text = text.replace(/#(\w+)/g, (_m, tag: string) => {
+        tags.push(tag)
+        return ''
+      })
+      text = text.trim()
+      out.push({ text, checked, line: index, tags, due, status })
+    })
+    return out
+  }
+
+
+  function walk(node: PMNode | PMNode[] | undefined): void {
+    if (!node) return
+    if (Array.isArray(node)) {
+      node.forEach(walk)
+      return
+    }
+    if (node.type === 'taskItem') {
+      const index = out.length
+      const checked = (node.attrs as { checked?: boolean } | undefined)?.checked ?? false
+      const tags: string[] = []
+      let due: string | undefined = (node.attrs as { due?: string } | undefined)?.due
+      let status: string | undefined = (node.attrs as { status?: string } | undefined)?.status
+      let text = ''
+      const extract = (n: PMNode | PMNode[] | undefined): void => {
+        if (!n) return
+        if (Array.isArray(n)) {
+          n.forEach(extract)
+          return
+        }
+        if (n.text) text += n.text
+        if (n.content) n.content.forEach(extract)
+      }
+      if (node.content) node.content.forEach(extract)
+      text = text.replace(/\b(\w+):([^\s]+)/g, (_: string, key: string, value: string) => {
+        switch (key.toLowerCase()) {
+          case 'due':
+            if (!due) due = value
+            break
+          case 'tag':
+            tags.push(value)
+            break
+          case 'status':
+            if (!status) status = value
+            break
+        }
+        return ''
+      })
+      text = text.replace(/#(\w+)/g, (_m: string, tag: string) => {
+        tags.push(tag)
+        return ''
+      })
+      text = text.trim()
+      out.push({ text, checked, line: index, tags, due, status })
+    }
+    if (node.content) node.content.forEach(walk)
+  }
+
+  walk(html as PMNode)
+  return out
+}
+
+export function toggleTaskInMarkdown(
+  md: string,
+  hit: TaskHit & { start: number; end: number; mark: string },
+) {
   const before = md.slice(0, hit.start)
   const target = md.slice(hit.start, hit.end)
-  const after  = md.slice(hit.end)
+  const after = md.slice(hit.end)
   const checkedMark = `[${hit.mark}]`
   const uncheckedMark = '[ ]'
   const newMark = hit.mark === ' ' ? 'x' : hit.mark
