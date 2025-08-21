@@ -175,6 +175,10 @@ export function extractTasksFromHtml(html: string | PMNode): TaskHit[] {
   return out
 }
 
+export function countOpenTasks(html: string) {
+  return extractTasksFromHtml(html).filter(t => !t.checked).length
+}
+
 export function toggleTaskInMarkdown(
   md: string,
   hit: TaskHit & { start: number; end: number; mark: string },

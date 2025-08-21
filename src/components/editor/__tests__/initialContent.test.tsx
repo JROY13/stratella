@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import InlineEditor from "../InlineEditor";
 
 vi.mock("@/app/actions", () => ({
-  saveNoteInline: vi.fn().mockResolvedValue(undefined),
+  saveNoteInline: vi
+    .fn()
+    .mockResolvedValue({ openTasks: 0, updatedAt: null }),
 }));
 
 vi.mock("../FloatingToolbar", () => ({
