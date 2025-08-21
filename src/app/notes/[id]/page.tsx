@@ -32,7 +32,8 @@ export default async function NotePage({
   if (note.body == null) {
     console.warn(`Note ${id} has no body`)
   }
-  if (body.includes('<') || body.includes('data-type')) {
+  const htmlRegex = /<[a-z][\s\S]*>/i
+  if (htmlRegex.test(body) || body.includes('data-type')) {
     const markdown = htmlToMarkdown(body)
     await saveNoteInline(note.id, markdown, { revalidate: false })
     body = markdown
