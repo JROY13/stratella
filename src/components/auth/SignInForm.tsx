@@ -84,7 +84,9 @@ export default function SignInForm() {
       setErr('Enter your email above first.')
       return
     }
-    const redirectTo = `${window.location.origin}/login`
+    const redirectTo = `${
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin
+    }/reset-password`
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo })
     if (error) setErr(error.message)
     else setMsg('Reset email sent — check your inbox.')
