@@ -23,8 +23,9 @@ export default function Sidebar() {
               <Link
                 key={it.href}
                 href={it.href}
-                className={`rounded px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground
-                  ${active ? 'bg-accent text-accent-foreground' : ''}`}
+                className={`rounded px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground ${
+                  active ? 'bg-accent text-accent-foreground' : ''
+                }`}
               >
                 {it.label}
               </Link>
