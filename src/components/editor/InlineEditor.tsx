@@ -300,10 +300,23 @@ export default function InlineEditor({
   const attempts = React.useRef(0);
 
   const runSave = React.useCallback(
-    (html: string) => {
+    (html: string, opts?: { sync?: boolean }) => {
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
+      }
+      if (opts?.sync && navigator.sendBeacon) {
+        attempts.current = 0;
+        setStatus("saving");
+        try {
+          const data = new Blob(
+            [JSON.stringify({ id: noteId, html })],
+            { type: "application/json" },
+          );
+          navigator.sendBeacon("/api/save-note-inline", data);
+        } catch {}
+        setStatus("saved");
+        return Promise.resolve({ openTasks: 0, updatedAt: null });
       }
       return saveWithRetry(
         () => saveNoteInline(noteId, html, { revalidate: false }),
@@ -357,6 +370,34 @@ export default function InlineEditor({
       if (retryTimeout.current) clearTimeout(retryTimeout.current);
     };
   }, [editor, noteId, onChange, runSave]);
+
+  React.useEffect(() => {
+    if (!editor) return;
+    const flush = () => {
+      if (saveTimeout.current) {
+        clearTimeout(saveTimeout.current);
+        saveTimeout.current = null;
+        const current = editor.getHTML();
+        void runSave(current, { sync: true });
+      }
+    };
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveTimeout.current || status === "saving" || status === "retrying") {
+        flush();
+        e.preventDefault();
+        e.returnValue = "Changes are still being saved.";
+      }
+    };
+    const handlePageHide = () => {
+      flush();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [editor, runSave, status]);
 
   return (
     <div className="space-y-1">
