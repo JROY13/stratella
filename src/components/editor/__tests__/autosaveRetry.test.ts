@@ -28,4 +28,27 @@ describe('saveWithRetry', () => {
     expect(statuses[statuses.length - 1]).toBe('saved')
     vi.useRealTimers()
   })
+
+  it('rejects after the configured number of retries', async () => {
+    vi.useFakeTimers()
+    const setStatus = vi.fn()
+    const fn = vi.fn().mockRejectedValue(new Error('fail'))
+    const attemptRef = { current: 0 }
+    const retryRef = { current: null as ReturnType<typeof setTimeout> | null }
+    const onError = vi.fn()
+
+    const promise = saveWithRetry(fn, setStatus, attemptRef, retryRef, {
+      maxRetries: 2,
+      onError,
+    })
+
+    await Promise.resolve()
+    vi.advanceTimersByTime(1000)
+    await Promise.resolve()
+    vi.advanceTimersByTime(2000)
+
+    await expect(promise).rejects.toThrow('fail')
+    expect(onError).toHaveBeenCalled()
+    vi.useRealTimers()
+  })
 })

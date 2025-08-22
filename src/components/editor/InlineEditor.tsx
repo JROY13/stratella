@@ -38,8 +38,10 @@ export function saveWithRetry<T>(
   setStatus: (s: SaveStatus) => void,
   attemptRef: React.MutableRefObject<number>,
   retryTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+  options?: { maxRetries?: number; onError?: (err: unknown) => void },
 ): Promise<T> {
-  return new Promise((resolve) => {
+  const { maxRetries = Infinity, onError } = options ?? {};
+  return new Promise((resolve, reject) => {
     const attempt = async () => {
       setStatus(attemptRef.current === 0 ? "saving" : "retrying");
       try {
@@ -47,14 +49,20 @@ export function saveWithRetry<T>(
         attemptRef.current = 0;
         setStatus("saved");
         resolve(res);
-      } catch {
+      } catch (err) {
+        console.error("saveWithRetry error", err);
         attemptRef.current += 1;
         setStatus("retrying");
+        if (attemptRef.current > maxRetries) {
+          onError?.(err);
+          reject(err);
+          return;
+        }
         const delay = Math.min(1000 * 2 ** (attemptRef.current - 1), 30000);
         retryTimeoutRef.current = setTimeout(attempt, delay);
       }
     };
-    attempt();
+    void attempt();
   });
 }
 
@@ -302,10 +310,12 @@ export default function InlineEditor({
         setStatus,
         attempts,
         retryTimeout,
-      ).then(res => {
-        onSaved?.(res);
-        return res;
-      });
+      )
+        .then(res => {
+          onSaved?.(res);
+          return res;
+        })
+        .catch(() => {});
     },
     [noteId, onSaved],
   );
