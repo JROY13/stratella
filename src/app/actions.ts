@@ -49,13 +49,25 @@ export async function saveNoteInline(
 ): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
   const openTasks = countOpenTasks(html);
-  const { data } = await supabase
+  const updatePayload: { body: string; open_tasks?: number } = { body: html };
+  const { error: columnError } = await supabase
     .from("notes")
-    .update({ body: html, open_tasks: openTasks })
+    .select("open_tasks")
+    .limit(1);
+  if (!columnError) {
+    updatePayload.open_tasks = openTasks;
+  }
+  const { data, error } = await supabase
+    .from("notes")
+    .update(updatePayload)
     .eq("id", id)
     .eq("user_id", user.id)
     .select("updated_at")
     .single();
+  if (error) {
+    console.error(error);
+    throw error;
+  }
   const { revalidate = true } = opts ?? {};
   if (revalidate !== false) {
     revalidatePath(`/notes/${id}`);
