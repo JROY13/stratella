@@ -4,7 +4,8 @@ import React from 'react'
 import NoteTitleInput from '@/components/NoteTitleInput'
 import InlineEditor from '@/components/editor/InlineEditor'
 import { Button } from '@/components/ui/button'
-import BackButton from '@/components/BackButton'
+import { NavButton } from '@/components/NavButton'
+import { ArrowLeft } from 'lucide-react'
 
 interface NoteClientProps {
   noteId: string
@@ -28,9 +29,18 @@ export default function NoteClient({
   const [title] = React.useState(initialTitle)
   const [modifiedState, setModifiedState] = React.useState(modified)
   const [openTasksState, setOpenTasksState] = React.useState(openTasks)
+  const [deleting, setDeleting] = React.useState(false)
   return (
     <div className="space-y-4 relative z-0">
-      <BackButton href="/notes" />
+      <NavButton
+        href="/notes"
+        variant="ghost"
+        size="icon"
+        aria-label="Go back"
+        className="md:hidden"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </NavButton>
       <NoteTitleInput noteId={noteId} initialTitle={title} />
       <div className="text-sm text-muted-foreground">
         Created {created} • Modified {modifiedState} • {openTasksState} open tasks
@@ -45,8 +55,14 @@ export default function NoteClient({
           }
         }}
       />
-      <form action={onDelete}>
-        <Button type="submit" variant="outline">
+      <form
+        action={onDelete}
+        onSubmit={() => {
+          setDeleting(true)
+          console.log('[delete-note]', noteId)
+        }}
+      >
+        <Button type="submit" variant="outline" disabled={deleting}>
           Delete
         </Button>
       </form>

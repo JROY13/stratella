@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NotesList } from './NotesList'
 import { countOpenTasks } from '@/lib/taskparse'
+import { NavButton } from '@/components/NavButton'
 
 export default async function NotesPage() {
   const supabase = await supabaseServer()
@@ -33,10 +34,15 @@ export default async function NotesPage() {
 
   return (
     <div className="space-y-6">
-      <form action={newNote} className="flex gap-2">
-        <Input name="title" placeholder="New note title…" />
-        <Button type="submit">Add</Button>
-      </form>
+      <div className="flex gap-2">
+        <form action={newNote} className="flex gap-2 flex-1">
+          <Input name="title" placeholder="New note title…" />
+          <Button type="submit">Add</Button>
+        </form>
+        <NavButton href="/tasks" variant="outline">
+          View Tasks
+        </NavButton>
+      </div>
 
       <NotesList notes={enriched} />
     </div>

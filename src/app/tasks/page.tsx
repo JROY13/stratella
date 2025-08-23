@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { NavButton } from '@/components/NavButton'
 import { extractTasksFromHtml, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
 import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -125,9 +125,13 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             <div className="space-y-6">
               {groups.map(group => (
                 <div key={group.id}>
-                  <Link href={`/notes/${group.id}`} className="font-medium underline">
+                  <NavButton
+                    href={`/notes/${group.id}`}
+                    variant="link"
+                    className="p-0 h-auto font-medium underline"
+                  >
                     {group.title}
-                  </Link>
+                  </NavButton>
                   <ul className="mt-2 space-y-2">
                     {group.tasks.map(t => (
                       <li key={t.line} className="flex items-center gap-2">
@@ -180,12 +184,13 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                           )}
                           aria-label={t.checked ? "Task completed" : "Task not completed"}
                         >
-                          <Link
+                          <NavButton
                             href={`/notes/${group.id}#L${t.line + 1}`}
-                            className="hover:underline"
+                            variant="link"
+                            className="p-0 h-auto hover:underline"
                           >
                             {t.text}
-                          </Link>
+                          </NavButton>
                           {t.checked ? (
                             t.due && (
                               <span className="text-xs text-muted-foreground">due {t.due}</span>
