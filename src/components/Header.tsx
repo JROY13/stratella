@@ -35,7 +35,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto max-w-5xl h-14 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          aria-label="Stratella home"
+          className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <Image
             src="/stratella-dark.png"
             alt="Stratella"
@@ -45,7 +49,7 @@ export default function Header() {
             priority
           />
           <span className="font-semibold tracking-tight">Stratella</span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-2">
           {/* Mobile menu (sidebar links) */}
