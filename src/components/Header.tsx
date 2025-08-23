@@ -33,7 +33,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto max-w-5xl h-14 px-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image
@@ -51,7 +51,12 @@ export default function Header() {
           {/* Mobile menu (sidebar links) */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden pointer-events-auto"
+                aria-label="Open menu"
+              >
                 {/* simple burger icon (no extra deps) */}
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />

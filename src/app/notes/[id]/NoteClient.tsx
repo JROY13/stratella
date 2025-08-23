@@ -28,7 +28,7 @@ export default function NoteClient({
   const [modifiedState, setModifiedState] = React.useState(modified)
   const [openTasksState, setOpenTasksState] = React.useState(openTasks)
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative z-0">
       <NoteTitleInput noteId={noteId} initialTitle={title} />
       <div className="text-sm text-muted-foreground">
         Created {created} • Modified {modifiedState} • {openTasksState} open tasks
