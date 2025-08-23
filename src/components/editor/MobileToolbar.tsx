@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { BubbleMenu, type Editor } from "@tiptap/react";
-const MobileToolbar = React.lazy(() => import("./MobileToolbar"));
+import { type Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -18,37 +17,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 
-export interface FloatingToolbarProps {
+export interface MobileToolbarProps {
   editor: Editor | null;
   noteId: string;
   userId: string | null;
 }
 
-export function FloatingToolbar({
+export default function MobileToolbar({
   editor,
   noteId,
   userId,
-}: FloatingToolbarProps) {
-  const [isTouch, setIsTouch] = React.useState(false);
-
-  React.useEffect(() => {
-    const hasTouch =
-      typeof window !== "undefined" &&
-      ((window.matchMedia &&
-        window.matchMedia("(pointer: coarse)").matches) ||
-        navigator.maxTouchPoints > 0);
-    setIsTouch(hasTouch);
-  }, []);
-
+}: MobileToolbarProps) {
   if (!editor) return null;
-
-  if (isTouch) {
-    return (
-      <React.Suspense fallback={null}>
-        <MobileToolbar editor={editor} noteId={noteId} userId={userId} />
-      </React.Suspense>
-    );
-  }
 
   const getBlockId = () => {
     const sel = editor.state?.selection;
@@ -81,17 +61,8 @@ export function FloatingToolbar({
   };
 
   return (
-    <BubbleMenu
-      editor={editor}
-      tippyOptions={{
-        duration: 150,
-        interactive: true,
-      }}
-      shouldShow={({ editor }) =>
-        !editor.state.selection.empty && editor.isFocused
-      }
-    >
-      <div className="flex items-center gap-1 rounded-md border bg-background p-1 shadow-md">
+    <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center border-t bg-background p-2 shadow-md">
+      <div className="flex items-center gap-1">
         <Button
           type="button"
           size="icon"
@@ -231,8 +202,7 @@ export function FloatingToolbar({
           <Quote className="size-4" />
         </Button>
       </div>
-    </BubbleMenu>
+    </div>
   );
 }
 
-export default FloatingToolbar;
