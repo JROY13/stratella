@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import React, { startTransition, useCallback, useEffect, useState } from 'react'
-import { Button, type ButtonProps } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-interface NavButtonProps extends ButtonProps {
+interface NavButtonProps extends React.ComponentProps<typeof Button> {
   href: string
 }
 
