@@ -4,6 +4,7 @@ import React from 'react'
 import NoteTitleInput from '@/components/NoteTitleInput'
 import InlineEditor from '@/components/editor/InlineEditor'
 import { Button } from '@/components/ui/button'
+import BackButton from '@/components/BackButton'
 
 interface NoteClientProps {
   noteId: string
@@ -29,6 +30,7 @@ export default function NoteClient({
   const [openTasksState, setOpenTasksState] = React.useState(openTasks)
   return (
     <div className="space-y-4 relative z-0">
+      <BackButton href="/notes" />
       <NoteTitleInput noteId={noteId} initialTitle={title} />
       <div className="text-sm text-muted-foreground">
         Created {created} • Modified {modifiedState} • {openTasksState} open tasks
