@@ -1,16 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { supabaseServer } from '@/lib/supabase-server'
-import { redirect, useRouter, useSearchParams } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { NavButton } from '@/components/NavButton'
 import { extractTasksFromHtml, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
 import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import TasksFilterBar from '@/components/tasks/TasksFilterBar'
-import FiltersOverlay from '@/components/tasks/FiltersOverlay'
 import TaskRow from '@/components/tasks/TaskRow'
-import { useState } from 'react'
+import TasksFilters from '@/components/tasks/TasksFilters'
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
@@ -103,53 +100,5 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-function TasksFilters({ notes, tags }: { notes: { id: string; title: string }[]; tags: string[] }) {
-  'use client'
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [open, setOpen] = useState(false)
-
-  type FilterState = TaskFilters & { note?: string }
-
-  function apply(filters: FilterState) {
-    const params = new URLSearchParams()
-    if (filters.completion) params.set('completion', filters.completion)
-    if (filters.note) params.set('note', filters.note)
-    if (filters.tag) params.set('tag', filters.tag)
-    if (filters.due) params.set('due', filters.due)
-    if (filters.sort) params.set('sort', filters.sort)
-    const query = params.toString()
-    if (query === searchParams.toString()) return
-    router.push(query ? `/tasks?${query}` : '/tasks')
-  }
-
-  const initialFilters: FilterState = {
-    completion: searchParams.get('completion') ?? undefined,
-    note: searchParams.get('note') ?? undefined,
-    tag: searchParams.get('tag') ?? undefined,
-    due: searchParams.get('due') ?? undefined,
-    sort: searchParams.get('sort') ?? undefined,
-  }
-
-  return (
-    <>
-      <div className="mb-4 flex items-center gap-2">
-        <TasksFilterBar notes={notes} tags={tags} onChange={apply} />
-        <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-          Filters...
-        </Button>
-      </div>
-      <FiltersOverlay
-        open={open}
-        onClose={() => setOpen(false)}
-        notes={notes}
-        tags={tags}
-        initialFilters={initialFilters}
-        onApply={apply}
-      />
-    </>
   )
 }
