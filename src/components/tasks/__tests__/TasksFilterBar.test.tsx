@@ -1,13 +1,18 @@
 import React from "react";
-(globalThis as any).React = React;
+(globalThis as unknown as { React: typeof React }).React = React;
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 const params = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useSearchParams: () => params,
 }));
+interface DateFilterProps {
+  onChange: (date: string | undefined) => void;
+  value?: string;
+  onClear: () => void;
+}
 vi.mock("../DateFilterTrigger", () => ({
-  default: ({ onChange, value, onClear }: any) => (
+  default: ({ onChange, value, onClear }: DateFilterProps) => (
     <div>
       <button onClick={() => onChange("2024-01-01")}>set-date</button>
       {value && <button onClick={onClear}>clear-date</button>}

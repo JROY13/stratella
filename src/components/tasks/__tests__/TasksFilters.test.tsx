@@ -1,5 +1,5 @@
 import React from "react";
-(globalThis as any).React = React;
+(globalThis as unknown as { React: typeof React }).React = React;
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 const pushMock = vi.fn();
