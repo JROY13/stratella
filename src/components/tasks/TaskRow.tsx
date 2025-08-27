@@ -12,8 +12,8 @@ interface Task {
 
 interface TaskRowProps {
   task: Task
-  onToggle: (done: boolean) => void
-  onDueChange: (value: string) => void
+  onToggle: (done: boolean) => void | Promise<void>
+  onDueChange: (value: string) => void | Promise<void>
 }
 
 export default function TaskRow({ task, onToggle, onDueChange }: TaskRowProps) {
