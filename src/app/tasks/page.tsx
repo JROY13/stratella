@@ -8,9 +8,7 @@ import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import DueDateInput from '@/components/DueDateInput'
-import { cn } from '@/lib/utils'
+import TaskRow from '@/components/tasks/TaskRow'
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
@@ -58,6 +56,19 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   const emptyMessage =
     filters.completion === 'done' ? 'No closed tasks' : 'No tasks found'
+
+  async function handleToggle(noteId: string, line: number, done: boolean) {
+    'use server'
+    void done
+    await toggleTaskFromNote(noteId, line)
+  }
+
+  async function handleDueChange(noteId: string, line: number, value: string) {
+    'use server'
+    const fd = new FormData()
+    fd.append('due', value)
+    await setTaskDueFromNote(noteId, line, fd)
+  }
 
   return (
     <div className="space-y-6">
@@ -134,97 +145,12 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                   </NavButton>
                   <ul className="mt-2 space-y-2">
                     {group.tasks.map(t => (
-                      <li key={t.line} className="flex items-center gap-2">
-                        {t.checked ? (
-                          <div
-                            className="inline-flex h-5 w-5 items-center justify-center rounded border border-input bg-transparent text-foreground"
-                            aria-hidden="true"
-                          >
-                            <svg
-                              viewBox="0 0 20 20"
-                              className="h-3.5 w-3.5"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M4 10l3 3 9-9" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <form action={toggleTaskFromNote.bind(null, group.id, t.line)}>
-                            <Button
-                              type="submit"
-                              title="Mark done"
-                              aria-label="Mark done"
-                              className="group inline-flex h-5 w-5 items-center justify-center rounded border border-input bg-transparent
-                                      text-transparent transition-colors
-                                      hover:bg-foreground hover:text-background"
-                            >
-                              {/* ✓ appears only on hover */}
-                              <svg
-                                viewBox="0 0 20 20"
-                                className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M4 10l3 3 9-9" />
-                              </svg>
-                            </Button>
-                          </form>
-                        )}
-                        <div
-                          className={cn(
-                            "flex flex-wrap items-center gap-2",
-                            t.checked && "text-muted-foreground line-through"
-                          )}
-                          aria-label={t.checked ? "Task completed" : "Task not completed"}
-                        >
-                          <NavButton
-                            href={`/notes/${group.id}#L${t.line + 1}`}
-                            variant="link"
-                            className="p-0 h-auto hover:underline"
-                          >
-                            {t.text}
-                          </NavButton>
-                          {t.checked ? (
-                            t.due && (
-                              <span className="text-xs text-muted-foreground">due {t.due}</span>
-                            )
-                          ) : (
-                            <form action={setTaskDueFromNote.bind(null, group.id, t.line)}>
-                              <DueDateInput defaultValue={t.due} />
-                            </form>
-                          )}
-                          {t.status && (
-                            <Badge variant="outline" className="text-xs">
-                              {t.status}
-                            </Badge>
-                          )}
-                          {t.tags.map(tag => (
-                            <span key={tag} className="text-xs text-muted-foreground">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                        {t.checked && (
-                          <form action={toggleTaskFromNote.bind(null, group.id, t.line)}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              type="submit"
-                              title="Reopen task"
-                              aria-label="Reopen task"
-                            >
-                              Undo
-                            </Button>
-                          </form>
-                        )}
-                      </li>
+                      <TaskRow
+                        key={t.line}
+                        task={{ title: t.text, done: t.checked, due: t.due }}
+                        onToggle={handleToggle.bind(null, group.id, t.line)}
+                        onDueChange={handleDueChange.bind(null, group.id, t.line)}
+                      />
                     ))}
                   </ul>
                 </div>
