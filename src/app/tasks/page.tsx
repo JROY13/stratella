@@ -10,6 +10,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import TaskRow from '@/components/tasks/TaskRow'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function handleToggle(noteId: string, line: number, _done: boolean) {
+  'use server'
+  await toggleTaskFromNote(noteId, line)
+}
+
+async function handleDueChange(noteId: string, line: number, value: string) {
+  'use server'
+  const fd = new FormData()
+  fd.append('due', value)
+  await setTaskDueFromNote(noteId, line, fd)
+}
+
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
@@ -56,19 +69,6 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   const emptyMessage =
     filters.completion === 'done' ? 'No closed tasks' : 'No tasks found'
-
-  async function handleToggle(noteId: string, line: number, done: boolean) {
-    'use server'
-    void done
-    await toggleTaskFromNote(noteId, line)
-  }
-
-  async function handleDueChange(noteId: string, line: number, value: string) {
-    'use server'
-    const fd = new FormData()
-    fd.append('due', value)
-    await setTaskDueFromNote(noteId, line, fd)
-  }
 
   return (
     <div className="space-y-6">
