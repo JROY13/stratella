@@ -44,3 +44,12 @@ This file defines how Codex Agents should operate in this repository.
 - Report conflicts clearly instead of guessing a resolution.
 - Do not auto-resolve conflicts unless explicitly instructed.
 - Use small, focused PRs.
+
+---
+
+## Build & Verification
+
+- Run `npm run build` locally before committing to catch server/client boundary errors.
+- Ensure any component using React hooks or browser APIs begins with `"use client"`.
+- Verify `npm run lint`, `npm test`, and (if available) `npm run typecheck` all pass.
+- Rebase on `main` and resolve conflicts locally before pushing.
