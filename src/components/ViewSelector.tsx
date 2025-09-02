@@ -1,13 +1,24 @@
 'use client'
 
-import { LucideIcon } from 'lucide-react'
+import {
+  type LucideIcon,
+  LayoutPanelTop,
+  LayoutGrid,
+  List,
+} from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
+
+const icons = {
+  list: List,
+  card: LayoutPanelTop,
+  grid: LayoutGrid,
+} satisfies Record<string, LucideIcon>
 
 export type ViewOption = {
   value: string
   label: string
-  icon: LucideIcon
+  icon: keyof typeof icons
 }
 
 interface ViewSelectorProps {
@@ -38,7 +49,7 @@ export function ViewSelector({ options, paramKey = 'view', defaultValue, classNa
       )}
     >
       {options.map(opt => {
-        const Icon = opt.icon
+        const Icon = icons[opt.icon]
         const active = current === opt.value
         return (
           <button
