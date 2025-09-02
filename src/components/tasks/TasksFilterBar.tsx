@@ -83,6 +83,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
           value={filters.completion ?? ''}
           onChange={e => update({ completion: e.target.value || undefined })}
           className="h-9 rounded-md border border-input bg-transparent px-2"
+          aria-label="Completion filter"
         >
           <option value="">All</option>
           <option value="open">Open</option>
@@ -92,6 +93,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
           value={filters.note ?? ''}
           onChange={e => update({ note: e.target.value || undefined })}
           className="h-9 rounded-md border border-input bg-transparent px-2"
+          aria-label="Note filter"
         >
           <option value="">All Notes</option>
           {notes.map(n => (
@@ -104,6 +106,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
           value={filters.tag ?? ''}
           onChange={e => update({ tag: e.target.value || undefined })}
           className="h-9 rounded-md border border-input bg-transparent px-2"
+          aria-label="Tag filter"
         >
           <option value="">All Tags</option>
           {tags.map(tag => (
@@ -121,6 +124,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
           value={filters.sort ?? ''}
           onChange={e => update({ sort: e.target.value || undefined })}
           className="h-9 rounded-md border border-input bg-transparent px-2"
+          aria-label="Sort tasks"
         >
           <option value="">Sort</option>
           <option value="due">Due</option>

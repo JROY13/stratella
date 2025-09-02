@@ -73,8 +73,13 @@ export default function FiltersOverlay({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
         <Dialog.Content
           role="dialog"
+          aria-label="Task filters"
           className="fixed inset-0 z-50 flex flex-col bg-background p-4"
         >
+          <Dialog.Title className="sr-only">Task filters</Dialog.Title>
+          <Dialog.Description className="sr-only">
+            Set filters for the task list
+          </Dialog.Description>
           <div className="flex flex-col gap-4 overflow-auto">
             <select
               value={filters.completion ?? ""}
@@ -82,6 +87,7 @@ export default function FiltersOverlay({
                 update({ completion: e.target.value || undefined })
               }
               className="h-9 rounded-md border border-input bg-transparent px-2"
+              aria-label="Completion filter"
             >
               <option value="">All</option>
               <option value="open">Open</option>
@@ -91,6 +97,7 @@ export default function FiltersOverlay({
               value={filters.note ?? ""}
               onChange={(e) => update({ note: e.target.value || undefined })}
               className="h-9 rounded-md border border-input bg-transparent px-2"
+              aria-label="Note filter"
             >
               <option value="">All Notes</option>
               {notes.map((n) => (
@@ -103,6 +110,7 @@ export default function FiltersOverlay({
               value={filters.tag ?? ""}
               onChange={(e) => update({ tag: e.target.value || undefined })}
               className="h-9 rounded-md border border-input bg-transparent px-2"
+              aria-label="Tag filter"
             >
               <option value="">All Tags</option>
               {tags.map((tag) => (
@@ -123,6 +131,7 @@ export default function FiltersOverlay({
               value={filters.sort ?? ""}
               onChange={(e) => update({ sort: e.target.value || undefined })}
               className="h-9 rounded-md border border-input bg-transparent px-2"
+              aria-label="Sort tasks"
             >
               <option value="">Sort</option>
               <option value="due">Due</option>
