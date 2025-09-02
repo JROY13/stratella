@@ -6,6 +6,7 @@ import DateFilterTrigger from './DateFilterTrigger'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { TaskFilters } from '@/lib/taskparse'
+import { track } from '@/lib/analytics'
 
 interface NoteOption {
   id: string
@@ -49,10 +50,17 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
 
   function update(patch: Partial<FilterState>) {
     setFilters(f => ({ ...f, ...patch }))
+    track('tasks.filters.changed', { note_id: 'tasks' })
   }
 
   function clear(key: keyof FilterState) {
     update({ [key]: undefined })
+    track('tasks.filters.cleared', { note_id: 'tasks' })
+  }
+
+  function handleApply() {
+    onApply?.(filters)
+    track('tasks.filters.applied', { note_id: 'tasks' })
   }
 
   const pills: { key: keyof FilterState; label: string }[] = []
@@ -119,7 +127,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
           <option value="text">Text</option>
         </select>
         {onApply && (
-          <Button type="button" onClick={() => onApply(filters)}>
+          <Button type="button" onClick={handleApply}>
             Apply
           </Button>
         )}
