@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { track } from '@/lib/analytics'
 
 export interface DateFilterTriggerProps {
   value?: string
@@ -25,6 +26,7 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
   const handleSelect = useCallback(
     (d: Date) => {
       onChange(format(d))
+      track('tasks.datepicker.date_set', { note_id: 'tasks' })
       setOpen(false)
     },
     [onChange]
@@ -56,6 +58,7 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
 
   function handleClear() {
     onClear?.()
+    track('tasks.datepicker.cleared', { note_id: 'tasks' })
     setOpen(false)
   }
 
@@ -73,7 +76,17 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
 
   return (
     <div className="relative inline-block">
-      <Button type="button" variant="outline" onClick={() => setOpen(o => !o)}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() =>
+          setOpen(o => {
+            const next = !o
+            if (next) track('tasks.datepicker.opened', { note_id: 'tasks' })
+            return next
+          })
+        }
+      >
         {value || 'Select date'}
       </Button>
       {open && (

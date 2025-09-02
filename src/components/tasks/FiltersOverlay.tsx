@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
 import DateFilterTrigger from "./DateFilterTrigger";
 import type { TaskFilters } from "@/lib/taskparse";
+import { track } from "@/lib/analytics";
 
 interface NoteOption {
   id: string;
@@ -44,10 +45,12 @@ export default function FiltersOverlay({
 
   function update(patch: Partial<FilterState>) {
     setFilters((f) => ({ ...f, ...patch }));
+    track('tasks.filters.changed', { note_id: 'tasks' });
   }
 
   function handleApply() {
     onApply(filters);
+    track('tasks.filters.applied', { note_id: 'tasks' });
     onClose();
   }
 
@@ -55,6 +58,7 @@ export default function FiltersOverlay({
     const empty: FilterState = {};
     setFilters(empty);
     onApply(empty);
+    track('tasks.filters.cleared', { note_id: 'tasks' });
     onClose();
   }
 
@@ -110,7 +114,10 @@ export default function FiltersOverlay({
             <DateFilterTrigger
               value={filters.due}
               onChange={(d) => update({ due: d })}
-              onClear={() => update({ due: undefined })}
+              onClear={() => {
+                update({ due: undefined });
+                track('tasks.filters.cleared', { note_id: 'tasks' });
+              }}
             />
             <select
               value={filters.sort ?? ""}
