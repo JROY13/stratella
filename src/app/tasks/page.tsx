@@ -4,25 +4,11 @@ import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { NavButton } from '@/components/NavButton'
 import { extractTasksFromHtml, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
-import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TaskRow from '@/components/tasks/TaskRow'
 import TasksFilters from '@/components/tasks/TasksFilters'
 import ViewSelector from '@/components/ViewSelector'
 import { List, LayoutPanelTop } from 'lucide-react'
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function handleToggle(noteId: string, line: number, _done: boolean) {
-  'use server'
-  await toggleTaskFromNote(noteId, line)
-}
-
-async function handleDueChange(noteId: string, line: number, value: string) {
-  'use server'
-  const fd = new FormData()
-  fd.append('due', value)
-  await setTaskDueFromNote(noteId, line, fd)
-}
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
@@ -114,8 +100,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                         <TaskRow
                           key={t.line}
                           task={{ title: t.text, done: t.checked, due: t.due }}
-                          onToggle={handleToggle.bind(null, group.id, t.line)}
-                          onDueChange={handleDueChange.bind(null, group.id, t.line)}
+                          noteId={group.id}
+                          line={t.line}
                         />
                       ))}
                     </ul>
@@ -139,8 +125,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                       <TaskRow
                         key={t.line}
                         task={{ title: t.text, done: t.checked, due: t.due }}
-                        onToggle={handleToggle.bind(null, group.id, t.line)}
-                        onDueChange={handleDueChange.bind(null, group.id, t.line)}
+                        noteId={group.id}
+                        line={t.line}
                       />
                     ))}
                   </ul>
