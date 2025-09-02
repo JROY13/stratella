@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import TaskRow from '@/components/tasks/TaskRow'
+import ViewSelector from '@/components/ViewSelector'
+import { LayoutPanelTop, List as ListIcon } from 'lucide-react'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handleToggle(noteId: string, line: number, _done: boolean) {
@@ -46,6 +48,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const params = await searchParams
 
   const noteId = typeof params.note === 'string' ? params.note : undefined
+
+  const viewParam = typeof params.view === 'string' ? params.view : undefined
+  const view = viewParam === 'card' ? 'card' : 'list'
 
   const filters: TaskFilters = {
     completion: typeof params.completion === 'string' ? params.completion : undefined,
@@ -130,8 +135,46 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             </select>
             <Button type="submit">Apply</Button>
           </form>
+          <ViewSelector
+            defaultValue="list"
+            options={[
+              { value: 'list', label: 'List', icon: ListIcon },
+              { value: 'card', label: 'Card', icon: LayoutPanelTop },
+            ]}
+            className="mb-4"
+          />
           {groups.length === 0 ? (
             <p className="text-muted-foreground">{emptyMessage}</p>
+          ) : view === 'card' ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {groups.map(group => (
+                <Card key={group.id}>
+                  <CardHeader>
+                    <CardTitle>
+                      <NavButton
+                        href={`/notes/${group.id}`}
+                        variant="link"
+                        className="p-0 h-auto font-medium underline"
+                      >
+                        {group.title}
+                      </NavButton>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {group.tasks.map(t => (
+                        <TaskRow
+                          key={t.line}
+                          task={{ title: t.text, done: t.checked, due: t.due }}
+                          onToggle={handleToggle.bind(null, group.id, t.line)}
+                          onDueChange={handleDueChange.bind(null, group.id, t.line)}
+                        />
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : (
             <div className="space-y-6">
               {groups.map(group => (
