@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TaskRow from '@/components/tasks/TaskRow'
 import TasksFilters from '@/components/tasks/TasksFilters'
 import ViewSelector from '@/components/ViewSelector'
-import { List, LayoutPanelTop } from 'lucide-react'
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
@@ -72,8 +71,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             <ViewSelector
               defaultValue="list"
               options={[
-                { value: 'list', label: 'List', icon: List },
-                { value: 'card', label: 'Card', icon: LayoutPanelTop },
+                { value: 'list', label: 'List', icon: 'list' },
+                { value: 'card', label: 'Card', icon: 'card' },
               ]}
             />
           </TasksFilters>

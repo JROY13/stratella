@@ -11,7 +11,6 @@ vi.mock('next/navigation', () => ({
 }))
 
 import ViewSelector from '../ViewSelector'
-import { LayoutPanelTop, List } from 'lucide-react'
 
 describe('ViewSelector', () => {
   beforeEach(() => replace.mockClear())
@@ -21,8 +20,8 @@ describe('ViewSelector', () => {
       <ViewSelector
         defaultValue="card"
         options={[
-          { value: 'card', label: 'Card', icon: LayoutPanelTop },
-          { value: 'list', label: 'List', icon: List },
+          { value: 'card', label: 'Card', icon: 'card' },
+          { value: 'list', label: 'List', icon: 'list' },
         ]}
       />
     )

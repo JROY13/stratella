@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import ViewSelector from '@/components/ViewSelector'
 import FilterBar, { NoteFilters } from '@/components/notes/FilterBar'
-import { Filter, LayoutPanelTop, LayoutGrid, List } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { NotesList, type Note } from './NotesList'
 
 export function NotesClient({ notes }: { notes: Note[] }) {
@@ -29,9 +29,9 @@ export function NotesClient({ notes }: { notes: Note[] }) {
         <ViewSelector
           defaultValue="card"
           options={[
-            { value: 'card', label: 'Card', icon: LayoutPanelTop },
-            { value: 'grid', label: 'Grid', icon: LayoutGrid },
-            { value: 'list', label: 'List', icon: List },
+            { value: 'card', label: 'Card', icon: 'card' },
+            { value: 'grid', label: 'Grid', icon: 'grid' },
+            { value: 'list', label: 'List', icon: 'list' },
           ]}
         />
         <button
