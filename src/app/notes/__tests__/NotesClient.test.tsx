@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => params,
 }));
 
-import { NotesClient } from "../page";
+import { NotesClient } from "../NotesClient";
 
 const notes = [
   { id: "1", title: "Alpha", updated_at: "2024-01-02T00:00:00Z", openTasks: 0 },
