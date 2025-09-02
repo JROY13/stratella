@@ -3,47 +3,33 @@ import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 const pushMock = vi.fn();
+const params = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => params,
+  usePathname: () => "/tasks",
 }));
-import FiltersOverlay from "../FiltersOverlay";
-import { useRouter, useSearchParams } from "next/navigation";
-
-function TasksFilters() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [open, setOpen] = React.useState(false);
-
-  function handleApply(filters: Record<string, string | undefined>) {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) params.set(key, value);
-      else params.delete(key);
-    });
-    router.push(`?${params.toString()}`);
-  }
-
-  return (
-    <div>
-      <button onClick={() => setOpen(true)}>Filters…</button>
-      <FiltersOverlay
-        open={open}
-        onClose={() => setOpen(false)}
-        notes={[]}
-        tags={[]}
-        onApply={handleApply}
-      />
-    </div>
-  );
+interface DateFilterProps {
+  onChange: (date: string | undefined) => void;
+  value?: string;
+  onClear: () => void;
 }
+vi.mock("../DateFilterTrigger", () => ({
+  default: ({ onChange, value, onClear }: DateFilterProps) => (
+    <div>
+      <button onClick={() => onChange("2024-01-01")}>set-date</button>
+      {value && <button onClick={onClear}>clear-date</button>}
+    </div>
+  ),
+}));
+import TasksFilters from "../TasksFilters";
 
-test("Filters button toggles overlay and updates URL parameters", () => {
-  render(<TasksFilters />);
-  expect(screen.queryByRole("dialog")).toBeNull();
+test("filter button toggles bar and applies parameters", () => {
+  render(<TasksFilters notes={[]} tags={[]} />);
+  expect(screen.queryAllByRole("combobox").length).toBe(0);
 
-  fireEvent.click(screen.getByText("Filters…"));
-  expect(screen.getByRole("dialog")).toBeTruthy();
+  fireEvent.click(screen.getByLabelText("Toggle filters"));
+  expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0);
 
   fireEvent.change(screen.getAllByRole("combobox")[0], {
     target: { value: "open" },
@@ -51,5 +37,5 @@ test("Filters button toggles overlay and updates URL parameters", () => {
 
   fireEvent.click(screen.getByText("Apply"));
   expect(pushMock).toHaveBeenCalledWith("?completion=open");
-  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.queryAllByRole("combobox").length).toBe(0);
 });
