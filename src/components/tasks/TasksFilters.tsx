@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import ViewSelector from '@/components/ViewSelector'
+import { useState, type ReactNode } from 'react'
 import TasksFilterBar from './TasksFilterBar'
-import { Filter, LayoutPanelTop, List } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { TaskFilters } from '@/lib/taskparse'
 
@@ -12,13 +11,14 @@ type NoteOption = { id: string; title: string }
 interface TasksFiltersProps {
   notes: NoteOption[]
   tags: string[]
+  children?: ReactNode
 }
 
 interface FilterState extends TaskFilters {
   note?: string
 }
 
-export default function TasksFilters({ notes, tags }: TasksFiltersProps) {
+export default function TasksFilters({ notes, tags, children }: TasksFiltersProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -36,13 +36,7 @@ export default function TasksFilters({ notes, tags }: TasksFiltersProps) {
   return (
     <div className="mb-4 space-y-4">
       <div className="flex items-center gap-2">
-        <ViewSelector
-          defaultValue="list"
-          options={[
-            { value: 'list', label: 'List', icon: List },
-            { value: 'card', label: 'Card', icon: LayoutPanelTop },
-          ]}
-        />
+        {children}
         <button
           type="button"
           aria-label="Toggle filters"
