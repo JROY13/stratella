@@ -58,3 +58,42 @@ test("each control updates filters and pills", () => {
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ completion: undefined }));
   expect(screen.queryByText("Done", { selector: "span" })).toBeNull();
 });
+
+test("pills can clear each filter", () => {
+  const onChange = vi.fn();
+  render(
+    <TasksFilterBar
+      notes={[{ id: "1", title: "Note 1" }]}
+      tags={["tag1"]}
+      onChange={onChange}
+    />
+  );
+  const selects = screen.getAllByRole("combobox");
+  const [completionSelect, noteSelect, tagSelect, sortSelect] = selects;
+
+  fireEvent.change(completionSelect, { target: { value: "done" } });
+  fireEvent.change(noteSelect, { target: { value: "1" } });
+  fireEvent.change(tagSelect, { target: { value: "tag1" } });
+  fireEvent.click(screen.getByText("set-date"));
+  fireEvent.change(sortSelect, { target: { value: "due" } });
+
+  fireEvent.click(screen.getByLabelText("Clear note filter"));
+  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ note: undefined }));
+  expect(screen.queryByText("Note 1", { selector: "span" })).toBeNull();
+
+  fireEvent.click(screen.getByLabelText("Clear tag filter"));
+  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ tag: undefined }));
+  expect(screen.queryByText("#tag1", { selector: "span" })).toBeNull();
+
+  fireEvent.click(screen.getByLabelText("Clear due filter"));
+  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ due: undefined }));
+  expect(screen.queryByText("2024-01-01")).toBeNull();
+
+  fireEvent.click(screen.getByLabelText("Clear sort filter"));
+  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ sort: undefined }));
+  expect(screen.queryByText("Sort due")).toBeNull();
+
+  fireEvent.click(screen.getByLabelText("Clear completion filter"));
+  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ completion: undefined }));
+  expect(screen.queryByText("Done", { selector: "span" })).toBeNull();
+});

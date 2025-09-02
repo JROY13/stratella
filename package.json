@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node --import tsx node_modules/vitest/vitest.mjs run",
+    "test:e2e": "playwright test",
     "migrate:legacy-html": "tsx scripts/migrate-legacy-html.ts"
   },
   "dependencies": {
@@ -26,9 +27,9 @@
     "@tiptap/extension-placeholder": "^2.26.1",
     "@tiptap/extension-task-item": "^2.26.1",
     "@tiptap/extension-task-list": "^2.26.1",
+    "@tiptap/html": "^2.26.1",
     "@tiptap/pm": "^2.26.1",
     "@tiptap/react": "^2.26.1",
-    "@tiptap/html": "^2.26.1",
     "@tiptap/starter-kit": "^2.26.1",
     "@tiptap/suggestion": "^2.26.1",
     "class-variance-authority": "^0.7.1",
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.3.0",
     "@types/jsdom": "^21.1.7",
