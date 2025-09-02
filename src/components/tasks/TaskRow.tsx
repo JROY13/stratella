@@ -3,6 +3,8 @@
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import DateFilterTrigger from './DateFilterTrigger'
+import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
+import { startTransition } from 'react'
 
 interface Task {
   title: string
@@ -12,20 +14,34 @@ interface Task {
 
 interface TaskRowProps {
   task: Task
-  onToggle: (done: boolean) => void | Promise<void>
-  onDueChange: (value: string) => void | Promise<void>
+  noteId: string
+  line: number
 }
 
-export default function TaskRow({ task, onToggle, onDueChange }: TaskRowProps) {
+export default function TaskRow({ task, noteId, line }: TaskRowProps) {
   const label = task.due
     ? new Date(task.due).toLocaleDateString()
     : 'Set due date'
+
+  function handleToggle() {
+    startTransition(() => {
+      void toggleTaskFromNote(noteId, line)
+    })
+  }
+
+  function handleDueChange(value: string) {
+    const fd = new FormData()
+    fd.append('due', value)
+    startTransition(() => {
+      void setTaskDueFromNote(noteId, line, fd)
+    })
+  }
 
   return (
     <li className="flex items-center gap-2">
       <Checkbox
         checked={task.done}
-        onCheckedChange={checked => onToggle(checked === true)}
+        onCheckedChange={() => handleToggle()}
         aria-label={task.done ? 'Mark task incomplete' : 'Mark task complete'}
       />
       <span className={cn('flex-1', task.done && 'line-through text-muted-foreground')}>
@@ -33,8 +49,8 @@ export default function TaskRow({ task, onToggle, onDueChange }: TaskRowProps) {
       </span>
       <DateFilterTrigger
         value={task.due}
-        onChange={onDueChange}
-        onClear={() => onDueChange('')}
+        onChange={handleDueChange}
+        onClear={() => handleDueChange('')}
         variant="link"
         className="h-auto p-0 text-blue-600 hover:underline dark:text-blue-500"
       >
