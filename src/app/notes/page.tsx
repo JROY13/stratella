@@ -5,9 +5,10 @@ import { redirect } from 'next/navigation'
 import { createNote } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { NotesList } from './NotesList'
+import { Note } from './NotesList'
 import { countOpenTasks } from '@/lib/taskparse'
 import { NavButton } from '@/components/NavButton'
+import { NotesClient } from './NotesClient'
 
 export default async function NotesPage() {
   const supabase = await supabaseServer()
@@ -19,7 +20,7 @@ export default async function NotesPage() {
     .select('id,title,updated_at,body')
     .order('updated_at', { ascending: false })
 
-  const enriched = (notes ?? []).map(n => ({
+  const enriched: Note[] = (notes ?? []).map(n => ({
     id: n.id,
     title: n.title,
     updated_at: n.updated_at,
@@ -44,7 +45,7 @@ export default async function NotesPage() {
         </NavButton>
       </div>
 
-      <NotesList notes={enriched} />
+      <NotesClient notes={enriched} />
     </div>
   )
 }
