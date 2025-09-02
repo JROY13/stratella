@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { LayoutPanelTop, LayoutGrid, List } from 'lucide-react'
+import ViewSelector from '@/components/ViewSelector'
 import { Card, CardContent } from '@/components/ui/card'
 type Note = {
   id: string
@@ -13,7 +15,8 @@ type Note = {
 type View = 'card' | 'grid' | 'list'
 
 export function NotesList({ notes }: { notes: Note[] }) {
-  const [view, setView] = useState<View>('card')
+  const params = useSearchParams()
+  const view = (params.get('view') as View) ?? 'card'
 
   const gridClass =
     view === 'card'
@@ -22,15 +25,14 @@ export function NotesList({ notes }: { notes: Note[] }) {
 
   return (
     <div className="space-y-3">
-      <select
-        value={view}
-        onChange={e => setView(e.target.value as View)}
-        className="h-9 rounded-md border border-input bg-transparent px-2"
-      >
-        <option value="card">Card</option>
-        <option value="grid">Grid</option>
-        <option value="list">List</option>
-      </select>
+      <ViewSelector
+        defaultValue="card"
+        options={[
+          { value: 'card', label: 'Card', icon: LayoutPanelTop },
+          { value: 'grid', label: 'Grid', icon: LayoutGrid },
+          { value: 'list', label: 'List', icon: List },
+        ]}
+      />
 
       {view === 'list' ? (
         <ul className="divide-y">
