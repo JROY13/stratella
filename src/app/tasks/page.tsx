@@ -8,6 +8,8 @@ import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TaskRow from '@/components/tasks/TaskRow'
 import TasksFilters from '@/components/tasks/TasksFilters'
+import ViewSelector from '@/components/ViewSelector'
+import { List, LayoutPanelTop } from 'lucide-react'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handleToggle(noteId: string, line: number, _done: boolean) {
@@ -80,7 +82,15 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           <CardTitle>Task List</CardTitle>
         </CardHeader>
         <CardContent>
-          <TasksFilters notes={noteOptions} tags={tagOptions} />
+          <TasksFilters notes={noteOptions} tags={tagOptions}>
+            <ViewSelector
+              defaultValue="list"
+              options={[
+                { value: 'list', label: 'List', icon: List },
+                { value: 'card', label: 'Card', icon: LayoutPanelTop },
+              ]}
+            />
+          </TasksFilters>
           {groups.length === 0 ? (
             <p className="text-muted-foreground">{emptyMessage}</p>
           ) : view === 'card' ? (
