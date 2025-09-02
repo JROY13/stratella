@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { track } from '@/lib/analytics'
@@ -18,6 +18,8 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
     return new Date(d.getFullYear(), d.getMonth(), 1)
   })
   const [focusDate, setFocusDate] = useState<Date | undefined>(() => (value ? new Date(value) : new Date()))
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
 
   function format(d: Date) {
     return d.toISOString().slice(0, 10)
@@ -40,11 +42,53 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
       } else if (e.key === 'Enter') {
         e.preventDefault()
         if (focusDate) handleSelect(focusDate)
+      } else if (
+        e.key === 'ArrowLeft' ||
+        e.key === 'ArrowRight' ||
+        e.key === 'ArrowUp' ||
+        e.key === 'ArrowDown'
+      ) {
+        e.preventDefault()
+        if (!focusDate) return
+        const next = new Date(focusDate)
+        if (e.key === 'ArrowLeft') next.setDate(next.getDate() - 1)
+        if (e.key === 'ArrowRight') next.setDate(next.getDate() + 1)
+        if (e.key === 'ArrowUp') next.setDate(next.getDate() - 7)
+        if (e.key === 'ArrowDown') next.setDate(next.getDate() + 7)
+        setFocusDate(next)
+        setMonth(new Date(next.getFullYear(), next.getMonth(), 1))
+        const btn = gridRef.current?.querySelector<HTMLButtonElement>(
+          `[data-date="${format(next)}"]`
+        )
+        btn?.focus()
       }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open, focusDate, handleSelect])
+
+  useEffect(() => {
+    if (!open) return
+    const overlay = overlayRef.current
+    const focusables = overlay?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const first = focusables?.[0]
+    const last = focusables?.[focusables.length - 1]
+    function trap(e: KeyboardEvent) {
+      if (e.key !== 'Tab' || !first || !last) return
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        ;(last as HTMLElement).focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        ;(first as HTMLElement).focus()
+      }
+    }
+    overlay?.addEventListener('keydown', trap)
+    ;(first as HTMLElement)?.focus()
+    return () => overlay?.removeEventListener('keydown', trap)
+  }, [open])
 
   function handleToday() {
     handleSelect(new Date())
@@ -79,6 +123,8 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
       <Button
         type="button"
         variant="outline"
+        aria-haspopup="dialog"
+        aria-expanded={open}
         onClick={() =>
           setOpen(o => {
             const next = !o
@@ -90,7 +136,12 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
         {value || 'Select date'}
       </Button>
       {open && (
-        <div className="absolute z-50 mt-2 rounded-md border bg-popover p-3 shadow-md">
+        <div
+          ref={overlayRef}
+          role="dialog"
+          aria-modal="true"
+          className="absolute z-50 mt-2 rounded-md border bg-popover p-3 shadow-md"
+        >
           <div className="mb-2 flex items-center justify-between">
             <div className="font-medium">
               {month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
@@ -120,7 +171,7 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
               </Button>
             </div>
           </div>
-          <div className="mb-2 grid grid-cols-7 text-center text-xs">
+          <div ref={gridRef} className="mb-2 grid grid-cols-7 text-center text-xs">
             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
               <div key={d}>{d}</div>
             ))}
@@ -134,6 +185,7 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
                 disabled={!d}
                 onClick={d ? () => handleSelect(d) : undefined}
                 onFocus={d ? () => setFocusDate(d) : undefined}
+                data-date={d ? format(d) : undefined}
               >
                 {d ? d.getDate() : ''}
               </Button>
