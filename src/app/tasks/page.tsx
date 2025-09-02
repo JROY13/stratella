@@ -6,11 +6,8 @@ import { NavButton } from '@/components/NavButton'
 import { extractTasksFromHtml, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
 import { toggleTaskFromNote, setTaskDueFromNote } from '@/app/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import TaskRow from '@/components/tasks/TaskRow'
-import ViewSelector from '@/components/ViewSelector'
-import { LayoutPanelTop, List as ListIcon } from 'lucide-react'
+import TasksFilters from '@/components/tasks/TasksFilters'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handleToggle(noteId: string, line: number, _done: boolean) {
@@ -44,6 +41,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   }
 
   const tagOptions = Array.from(new Set(tasks.flatMap(t => t.tags))).sort()
+  const noteOptions = (notes ?? []).map(n => ({ id: n.id, title: n.title || 'Untitled' }))
 
   const params = await searchParams
 
@@ -82,67 +80,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           <CardTitle>Task List</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="mb-4 flex flex-wrap gap-2">
-            <select
-              name="completion"
-              defaultValue={filters.completion ?? ''}
-              className="h-9 rounded-md border border-input bg-transparent px-2"
-            >
-              <option value="">All</option>
-              <option value="open">Open</option>
-              <option value="done">Done</option>
-            </select>
-            <select
-              name="note"
-              defaultValue={noteId ?? ''}
-              className="h-9 rounded-md border border-input bg-transparent px-2"
-            >
-              <option value="">All Notes</option>
-              {notes?.map(n => (
-                <option key={n.id} value={n.id}>
-                  {n.title || 'Untitled'}
-                </option>
-              ))}
-            </select>
-            <select
-              name="tag"
-              defaultValue={filters.tag ?? ''}
-              className="h-9 rounded-md border border-input bg-transparent px-2"
-            >
-              <option value="">All Tags</option>
-              {tagOptions.map(tag => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
-            <Input
-              type="date"
-              name="due"
-              placeholder="Due date"
-              title="Selecting a date narrows tasks whose metadata includes due:YYYY-MM-DD"
-              defaultValue={filters.due ?? ''}
-              className="w-36"
-            />
-            <select
-              name="sort"
-              defaultValue={filters.sort ?? ''}
-              className="h-9 rounded-md border border-input bg-transparent px-2"
-            >
-              <option value="">Sort</option>
-              <option value="due">Due</option>
-              <option value="text">Text</option>
-            </select>
-            <Button type="submit">Apply</Button>
-          </form>
-          <ViewSelector
-            defaultValue="list"
-            options={[
-              { value: 'list', label: 'List', icon: ListIcon },
-              { value: 'card', label: 'Card', icon: LayoutPanelTop },
-            ]}
-            className="mb-4"
-          />
+          <TasksFilters notes={noteOptions} tags={tagOptions} />
           {groups.length === 0 ? (
             <p className="text-muted-foreground">{emptyMessage}</p>
           ) : view === 'card' ? (
