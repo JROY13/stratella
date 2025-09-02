@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+  type ComponentProps,
+} from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { track } from '@/lib/analytics'
@@ -9,9 +16,19 @@ export interface DateFilterTriggerProps {
   value?: string
   onChange: (value: string) => void
   onClear?: () => void
+  className?: string
+  variant?: ComponentProps<typeof Button>['variant']
+  children?: ReactNode
 }
 
-export default function DateFilterTrigger({ value, onChange, onClear }: DateFilterTriggerProps) {
+export default function DateFilterTrigger({
+  value,
+  onChange,
+  onClear,
+  className,
+  variant = 'outline',
+  children,
+}: DateFilterTriggerProps) {
   const [open, setOpen] = useState(false)
   const [month, setMonth] = useState(() => {
     const d = value ? new Date(value) : new Date()
@@ -122,7 +139,8 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
     <div className="relative inline-block">
       <Button
         type="button"
-        variant="outline"
+        variant={variant}
+        className={className}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() =>
@@ -133,7 +151,7 @@ export default function DateFilterTrigger({ value, onChange, onClear }: DateFilt
           })
         }
       >
-        {value || 'Select date'}
+        {(children ?? value) || 'Select date'}
       </Button>
       {open && (
         <div

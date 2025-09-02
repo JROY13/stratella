@@ -17,6 +17,10 @@ interface TaskRowProps {
 }
 
 export default function TaskRow({ task, onToggle, onDueChange }: TaskRowProps) {
+  const label = task.due
+    ? new Date(task.due).toLocaleDateString()
+    : 'Set due date'
+
   return (
     <li className="flex items-center gap-2">
       <Checkbox
@@ -31,7 +35,11 @@ export default function TaskRow({ task, onToggle, onDueChange }: TaskRowProps) {
         value={task.due}
         onChange={onDueChange}
         onClear={() => onDueChange('')}
-      />
+        variant="link"
+        className="h-auto p-0 text-blue-600 hover:underline dark:text-blue-500"
+      >
+        {label}
+      </DateFilterTrigger>
     </li>
   )
 }
