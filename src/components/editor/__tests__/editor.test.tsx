@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Editor } from '@tiptap/react'
 import FloatingToolbar from '../FloatingToolbar'
+import './setup'
 
 vi.mock('@/lib/analytics', () => ({ track: vi.fn() }))
 

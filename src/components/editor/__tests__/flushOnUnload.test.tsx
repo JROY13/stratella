@@ -3,6 +3,7 @@ import { render, fireEvent } from "@testing-library/react";
 import { act } from "react";
 import { describe, it, expect, vi } from "vitest";
 import InlineEditor, { AUTOSAVE_THROTTLE_MS } from "../InlineEditor";
+import "./setup";
 
 vi.mock("@/app/actions", () => ({
   saveNoteInline: vi.fn(() => Promise.resolve({ openTasks: 0, updatedAt: null })),

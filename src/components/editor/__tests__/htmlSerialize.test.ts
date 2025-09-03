@@ -1,6 +1,7 @@
 import { Editor } from "@tiptap/core";
 import { createInlineEditorExtensions } from "../InlineEditor";
 import { describe, expect, it } from "vitest";
+import "./setup";
 
 function createEditor() {
   const extensions = createInlineEditorExtensions().filter(

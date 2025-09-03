@@ -4,6 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
+import "./setup";
 const AUTOSAVE_THROTTLE_MS = 3000;
 
 describe("typing performance and autosave", () => {

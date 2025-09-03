@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { saveWithRetry, SaveStatus } from '../InlineEditor'
+import './setup'
 
 describe('saveWithRetry', () => {
   it('retries failed saves with exponential backoff', async () => {

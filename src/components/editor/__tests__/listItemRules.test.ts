@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { Editor } from '@tiptap/core'
 import { createInlineEditorExtensions } from '../InlineEditor'
+import './setup'
 
 describe('list item input rules', () => {
   it('Enter creates a new list item', () => {

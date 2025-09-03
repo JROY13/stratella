@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import InlineEditor from "../InlineEditor";
 import { countOpenTasks } from "@/lib/taskparse";
+import "./setup";
 
 vi.mock("@/app/actions", () => ({
   saveNoteInline: vi.fn((_: string, html: string) =>

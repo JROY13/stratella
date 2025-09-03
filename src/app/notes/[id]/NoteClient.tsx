@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import NoteTitleInput from '@/components/NoteTitleInput'
 import InlineEditor from '@/components/editor/InlineEditor'
 import { Button } from '@/components/ui/button'
 import { NavButton } from '@/components/NavButton'
@@ -9,7 +8,6 @@ import { ArrowLeft } from 'lucide-react'
 
 interface NoteClientProps {
   noteId: string
-  initialTitle: string
   html: string
   created: string
   modified: string
@@ -19,14 +17,12 @@ interface NoteClientProps {
 
 export default function NoteClient({
   noteId,
-  initialTitle,
   html,
   created,
   modified,
   openTasks,
   onDelete,
 }: NoteClientProps) {
-  const [title] = React.useState(initialTitle)
   const [modifiedState, setModifiedState] = React.useState(modified)
   const [openTasksState, setOpenTasksState] = React.useState(openTasks)
   const [deleting, setDeleting] = React.useState(false)
@@ -41,10 +37,6 @@ export default function NoteClient({
       >
         <ArrowLeft className="h-5 w-5" />
       </NavButton>
-      <NoteTitleInput noteId={noteId} initialTitle={title} />
-      <div className="text-sm text-muted-foreground">
-        Created {created} • Modified {modifiedState} • {openTasksState} open tasks
-      </div>
       <InlineEditor
         noteId={noteId}
         html={html}
@@ -55,6 +47,9 @@ export default function NoteClient({
           }
         }}
       />
+      <div className="text-sm text-muted-foreground">
+        Created {created} • Modified {modifiedState} • {openTasksState} open tasks
+      </div>
       <form
         action={onDelete}
         onSubmit={() => {
