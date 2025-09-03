@@ -8,27 +8,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TaskRow from '@/components/tasks/TaskRow'
 import TasksFilters from '@/components/tasks/TasksFilters'
 import ViewSelector from '@/components/ViewSelector'
+import { extractTitleFromHtml } from '@/lib/note'
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: notes } = await supabase
-    .from('notes')
-    .select('id,title,body,updated_at')
-    .order('updated_at', { ascending: false })
+    const { data: notes } = await supabase
+      .from('notes')
+      .select('id,body,updated_at')
+      .order('updated_at', { ascending: false })
 
-  const tasks: (TaskWithNote & { noteTitle: string })[] = []
-  for (const n of notes ?? []) {
-    const todos = extractTasksFromHtml(n.body)
-    tasks.push(
-      ...todos.map(t => ({ ...t, noteId: n.id, noteTitle: n.title || 'Untitled' }))
-    )
-  }
+    const tasks: (TaskWithNote & { noteTitle: string })[] = []
+    const noteOptions: { id: string; title: string }[] = []
+    for (const n of notes ?? []) {
+      const title = extractTitleFromHtml(n.body) || 'Untitled'
+      const todos = extractTasksFromHtml(n.body)
+      tasks.push(
+        ...todos.map(t => ({ ...t, noteId: n.id, noteTitle: title }))
+      )
+      noteOptions.push({ id: n.id, title })
+    }
 
-  const tagOptions = Array.from(new Set(tasks.flatMap(t => t.tags))).sort()
-  const noteOptions = (notes ?? []).map(n => ({ id: n.id, title: n.title || 'Untitled' }))
+    const tagOptions = Array.from(new Set(tasks.flatMap(t => t.tags))).sort()
 
   const params = await searchParams
 

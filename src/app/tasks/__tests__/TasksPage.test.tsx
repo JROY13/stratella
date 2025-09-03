@@ -19,20 +19,18 @@ vi.mock("@/app/actions", () => ({
   setTaskDueFromNote: vi.fn(),
 }));
 
-const notes = [
-  {
-    id: "n1",
-    title: "Note A",
-    updated_at: "2024-01-01T00:00:00Z",
-    body: '<ul><li data-type="taskItem" data-checked="false"><div>Task 1</div></li></ul>',
-  },
-  {
-    id: "n2",
-    title: "Note B",
-    updated_at: "2024-01-02T00:00:00Z",
-    body: '<ul><li data-type="taskItem" data-checked="false"><div>Task 2</div></li></ul>',
-  },
-];
+  const notes = [
+    {
+      id: "n1",
+      updated_at: "2024-01-01T00:00:00Z",
+      body: '<h1>Note A</h1><ul><li data-type="taskItem" data-checked="false"><div>Task 1</div></li></ul>',
+    },
+    {
+      id: "n2",
+      updated_at: "2024-01-02T00:00:00Z",
+      body: '<h1>Note B</h1><ul><li data-type="taskItem" data-checked="false"><div>Task 2</div></li></ul>',
+    },
+  ];
 
 vi.mock("@/lib/supabase-server", () => ({
   supabaseServer: async () => ({
