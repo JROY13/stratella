@@ -19,12 +19,17 @@ export default async function NotesPage() {
     .select('id,title,updated_at,body')
     .order('updated_at', { ascending: false })
 
-  const enriched: Note[] = (notes ?? []).map(n => ({
-    id: n.id,
-    title: n.title,
-    updated_at: n.updated_at,
-    openTasks: countOpenTasks(n.body || '')
-  }))
+  const enriched: Note[] = (notes ?? [])
+    .filter(n => {
+      const body = (n.body ?? '').trim()
+      return body !== '' && body !== '<h1></h1>'
+    })
+    .map(n => ({
+      id: n.id,
+      title: n.title,
+      updated_at: n.updated_at,
+      openTasks: countOpenTasks(n.body || '')
+    }))
 
   async function createBlankNote() {
     'use server'
