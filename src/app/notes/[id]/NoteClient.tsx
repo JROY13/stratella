@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { NavButton } from '@/components/NavButton'
 import { ArrowLeft } from 'lucide-react'
 
+const EMPTY_HTML = '<h1></h1>'
+
 interface NoteClientProps {
   noteId: string
   html: string
@@ -26,6 +28,28 @@ export default function NoteClient({
   const [modifiedState, setModifiedState] = React.useState(modified)
   const [openTasksState, setOpenTasksState] = React.useState(openTasks)
   const [deleting, setDeleting] = React.useState(false)
+
+  const contentRef = React.useRef(html)
+  const hasTypedRef = React.useRef(html !== EMPTY_HTML)
+
+  const maybeDelete = React.useCallback(() => {
+    if (!hasTypedRef.current && contentRef.current === EMPTY_HTML && !deleting) {
+      setDeleting(true)
+      void onDelete()
+    }
+  }, [deleting, onDelete])
+
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!hasTypedRef.current && contentRef.current === EMPTY_HTML) {
+        void onDelete()
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [onDelete])
   return (
     <div className="space-y-4 relative z-0">
       <NavButton
@@ -40,6 +64,13 @@ export default function NoteClient({
       <InlineEditor
         noteId={noteId}
         html={html}
+        onChange={next => {
+          contentRef.current = next
+          if (next !== EMPTY_HTML) {
+            hasTypedRef.current = true
+          }
+        }}
+        onBlur={maybeDelete}
         onSaved={({ openTasks, updatedAt }) => {
           setOpenTasksState(openTasks)
           if (updatedAt) {

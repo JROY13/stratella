@@ -27,6 +27,7 @@ export interface InlineEditorProps {
   html: string;
   onChange?: (html: string) => void;
   onSaved?: (res: SaveNoteInlineResult) => void;
+  onBlur?: () => void;
 }
 
 export const AUTOSAVE_THROTTLE_MS = 3000;
@@ -258,6 +259,7 @@ export default function InlineEditor({
   html,
   onChange,
   onSaved,
+  onBlur,
 }: InlineEditorProps) {
   const editor = useEditor({
     extensions: createInlineEditorExtensions(),
@@ -385,6 +387,7 @@ export default function InlineEditor({
     const blurHandler = () => {
       const current = editor.getHTML();
       onChange?.(current);
+      onBlur?.();
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
@@ -401,7 +404,7 @@ export default function InlineEditor({
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) clearTimeout(retryTimeout.current);
     };
-  }, [editor, noteId, onChange, runSave]);
+  }, [editor, noteId, onChange, onBlur, runSave]);
 
   React.useEffect(() => {
     if (!editor) return;
