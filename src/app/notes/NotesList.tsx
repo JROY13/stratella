@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 export type Note = {
   id: string
-  title: string | null
+  title: string
   updated_at: string
   openTasks: number
 }

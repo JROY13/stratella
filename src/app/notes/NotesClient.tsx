@@ -14,7 +14,7 @@ export function NotesClient({ notes }: { notes: Note[] }) {
     let res = [...notes]
     if (filters.search) {
       const s = filters.search.toLowerCase()
-      res = res.filter(n => n.title?.toLowerCase().includes(s))
+      res = res.filter(n => n.title.toLowerCase().includes(s))
     }
     res.sort((a, b) => {
       const diff = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
