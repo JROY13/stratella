@@ -28,6 +28,10 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Note flow
+
+Click **New** to create a blank note. The first line becomes the note title, and the editor saves the entire document in a single state rather than maintaining separate title and body fields.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -45,15 +49,15 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Operations
 
-### HTML note migration
+### Unified document migration
 
-Whenever a release changes how notes are formatted, run the HTML‑to‑Markdown migration to update existing notes:
+Run the migration to ensure existing notes store the title and body in a single HTML document:
 
 ```bash
-node --import tsx scripts/migrate-html-notes.ts
+node --import tsx scripts/migrate-notes.ts
 ```
 
-Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the environment before running the script.
+Set `NEXT_PUBLIC_SUPABASE_URL` and either `SUPABASE_SERVICE_ROLE_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY` before running the script.
 
 ### Sample note cleanup
 
@@ -65,3 +69,8 @@ WHERE body = '<sample note body>';
 ```
 
 Replace `<sample note body>` with the exact string defined in `src/app/api/init-user/route.ts`.
+
+## Developer notes
+
+- TipTap uses an `<h1>` block as the note title and removes the “Untitled Note” placeholder once typing begins.
+- Empty notes are automatically deleted when the editor blurs or the page unloads without any user input.
