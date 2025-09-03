@@ -4,8 +4,8 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
 export const dynamic = 'force-dynamic'
 
-const SAMPLE_TITLE = 'Start Here'
-const SAMPLE_BODY = `<h1>Welcome to Stratella</h1>
+const SAMPLE_BODY = `<h1>Start Here</h1>
+<p>Welcome to Stratella</p>
 <p>This note will help you get started with editing and tasks.</p>
 <h2>Formatting Basics</h2>
 <p>Use <strong>bold</strong> and <em>italic</em> text to highlight ideas.</p>
@@ -57,7 +57,6 @@ export async function POST() {
     if ((count ?? 0) === 0) {
       const { error: insertErr } = await supabase.from('notes').insert({
         user_id: user.id,
-        title: SAMPLE_TITLE,
         body: SAMPLE_BODY,
       })
       if (insertErr && insertErr.code !== '23505') {

@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { JSDOM } from "jsdom";
 import { countOpenTasks } from "@/lib/taskparse";
+import { extractTitleFromHtml } from "@/lib/note";
 
 export async function requireUser() {
   const supabase = await supabaseServer(); // <-- await here
@@ -32,16 +33,25 @@ export async function saveNoteInline(
   opts?: { revalidate?: boolean },
 ): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
-  const dom = new JSDOM(html);
-  const title = dom.window.document.querySelector("h1")?.textContent ?? "";
+  const title = extractTitleFromHtml(html);
   const openTasks = countOpenTasks(html);
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("notes")
     .update({ title, body: html, open_tasks: openTasks })
     .eq("id", id)
     .eq("user_id", user.id)
     .select("updated_at")
     .single();
+  if (error?.code === "42703") {
+    // title column does not exist; retry without it
+    ({ data, error } = await supabase
+      .from("notes")
+      .update({ body: html, open_tasks: openTasks })
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("updated_at")
+      .single());
+  }
   if (error) {
     console.error(error);
     throw error;
