@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Editor } from "@tiptap/core";
 import { createInlineEditorExtensions } from "../InlineEditor";
+import "./setup";
 
 describe("task item data-type attribute", () => {
   it("sets data-type on task list items", () => {

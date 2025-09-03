@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { createInlineEditorExtensions } from '../InlineEditor'
+import './setup'
 
 describe('Drag handle extension', () => {
   it('is included in inline editor extensions', () => {

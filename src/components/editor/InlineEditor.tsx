@@ -211,13 +211,45 @@ export function createInlineEditorExtensions() {
     },
   });
 
+  const HeadingExit = Extension.create({
+    addKeyboardShortcuts() {
+      return {
+        Enter: () => {
+          const { state } = this.editor;
+          const { $from } = state.selection;
+          if (
+            $from.parent.type.name === "heading" &&
+            $from.parent.attrs.level === 1 &&
+            $from.before() === 1 &&
+            $from.parentOffset === $from.parent.content.size
+          ) {
+            const pos = $from.after();
+            this.editor
+              .chain()
+              .insertContentAt(pos, { type: "paragraph" })
+              .setTextSelection(pos + 1)
+              .run();
+            return true;
+          }
+          return false;
+        },
+      };
+    },
+  });
+
   return [
     StarterKit.configure({ history: {} }),
     TaskList,
     TaskItemExt,
-    Placeholder,
+    Placeholder.configure({
+      placeholder: ({ node, pos }) =>
+        node.type.name === "heading" && node.attrs.level === 1 && pos === 0
+          ? "Untitled Note"
+          : "",
+    }),
     DragHandle,
     ArrowNavigation,
+    HeadingExit,
   ];
 }
 
@@ -280,12 +312,11 @@ export default function InlineEditor({
   React.useEffect(() => {
     if (!editor) return;
 
-    const source = html || "";
+    const source = html && html.trim() !== "" ? html : "<h1></h1>";
 
     try {
-      editor.commands.setContent(source, false, {
-        preserveWhitespace: true,
-      });
+      editor.commands.setContent(source, false, { preserveWhitespace: true });
+      editor.chain().focus().setTextSelection(1).run();
     } catch (err) {
       console.error("Failed to set HTML", err);
       editor.commands.setContent("", false, {

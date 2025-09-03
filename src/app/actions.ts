@@ -26,17 +26,6 @@ export async function createNote(title?: string) {
   return data?.id as string;
 }
 
-export async function updateNoteTitle(id: string, title: string) {
-  const { supabase, user } = await requireUser();
-  await supabase
-    .from("notes")
-    .update({ title })
-    .eq("id", id)
-    .eq("user_id", user.id);
-  revalidatePath(`/notes/${id}`);
-  revalidatePath("/notes");
-}
-
 export async function saveNote(id: string, title: string, html: string) {
   const { supabase, user } = await requireUser();
   await supabase
@@ -55,7 +44,14 @@ export async function saveNoteInline(
 ): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
   const openTasks = countOpenTasks(html);
-  const updatePayload: { body: string; open_tasks?: number } = { body: html };
+  const updatePayload: { body: string; open_tasks?: number; title?: string } = {
+    body: html,
+  };
+  const { window } = new JSDOM(html);
+  const heading = window.document.querySelector("h1");
+  if (heading) {
+    updatePayload.title = heading.textContent ?? "";
+  }
   const { error: columnError } = await supabase
     .from("notes")
     .select("open_tasks")
