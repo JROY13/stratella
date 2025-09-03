@@ -26,42 +26,18 @@ export async function createNote(title?: string) {
   return data?.id as string;
 }
 
-export async function saveNote(id: string, title: string, html: string) {
-  const { supabase, user } = await requireUser();
-  await supabase
-    .from("notes")
-    .update({ title, body: html })
-    .eq("id", id)
-    .eq("user_id", user.id);
-  revalidatePath(`/notes/${id}`);
-  revalidatePath("/notes");
-}
-
 export async function saveNoteInline(
   id: string,
   html: string,
   opts?: { revalidate?: boolean },
 ): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
+  const dom = new JSDOM(html);
+  const title = dom.window.document.querySelector("h1")?.textContent ?? "";
   const openTasks = countOpenTasks(html);
-  const updatePayload: { body: string; open_tasks?: number; title?: string } = {
-    body: html,
-  };
-  const { window } = new JSDOM(html);
-  const heading = window.document.querySelector("h1");
-  if (heading) {
-    updatePayload.title = heading.textContent ?? "";
-  }
-  const { error: columnError } = await supabase
-    .from("notes")
-    .select("open_tasks")
-    .limit(1);
-  if (!columnError) {
-    updatePayload.open_tasks = openTasks;
-  }
   const { data, error } = await supabase
     .from("notes")
-    .update(updatePayload)
+    .update({ title, body: html, open_tasks: openTasks })
     .eq("id", id)
     .eq("user_id", user.id)
     .select("updated_at")
