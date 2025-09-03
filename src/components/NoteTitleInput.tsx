@@ -80,6 +80,7 @@ export default function NoteTitleInput({
         value={title}
         onChange={handleChange}
         onBlur={handleBlur}
+        autoFocus
         variant="title"
         className="text-3xl md:text-3xl font-bold h-auto py-0 border-0 px-0 focus-visible:ring-0"
       />
