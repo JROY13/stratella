@@ -14,10 +14,16 @@ export async function requireUser() {
   return { supabase, user };
 }
 
-export async function createNote(title: string) {
+export async function createNote(title?: string) {
   const { supabase, user } = await requireUser();
-  await supabase.from("notes").insert({ title, user_id: user.id, body: "" });
+  const { data, error } = await supabase
+    .from("notes")
+    .insert({ title: title ?? "Untitled", user_id: user.id, body: "" })
+    .select("id")
+    .single();
+  if (error) throw error;
   revalidatePath("/notes");
+  return data?.id as string;
 }
 
 export async function updateNoteTitle(id: string, title: string) {
