@@ -5,10 +5,7 @@ import "./setup";
 
 describe("heading Enter behavior", () => {
   it("inserts paragraph after heading", () => {
-    const extensions = createInlineEditorExtensions().filter(
-      e => e.name !== "dragHandle",
-    );
-    const editor = new Editor({ extensions });
+    const editor = new Editor({ extensions: createInlineEditorExtensions() });
     editor.commands.setContent("<h1>Title</h1>", false, { preserveWhitespace: true });
     const heading = editor.state.doc.firstChild;
     const end = (heading?.content.size ?? 0) + 1;

@@ -4,10 +4,7 @@ import { describe, expect, it } from "vitest";
 import "./setup";
 
 function createEditor() {
-  const extensions = createInlineEditorExtensions().filter(
-    (ext) => ext.name !== "dragHandle",
-  );
-  return new Editor({ extensions });
+  return new Editor({ extensions: createInlineEditorExtensions() });
 }
 
 describe("getHTML serialization", () => {

@@ -5,8 +5,7 @@ import './setup'
 
 describe('list item input rules', () => {
   it('Enter creates a new list item', () => {
-    const extensions = createInlineEditorExtensions().filter(e => e.name !== 'dragHandle')
-    const editor = new Editor({ extensions })
+    const editor = new Editor({ extensions: createInlineEditorExtensions() })
 
     editor.commands.toggleBulletList()
     editor.commands.insertContent('one')
@@ -19,8 +18,7 @@ describe('list item input rules', () => {
   })
 
   it('Enter on empty item exits the list', () => {
-    const extensions = createInlineEditorExtensions().filter(e => e.name !== 'dragHandle')
-    const editor = new Editor({ extensions })
+    const editor = new Editor({ extensions: createInlineEditorExtensions() })
 
     editor.commands.toggleBulletList()
     editor.commands.insertContent('one')
@@ -35,8 +33,7 @@ describe('list item input rules', () => {
   })
 
   it('Backspace at start converts item to paragraph', () => {
-    const extensions = createInlineEditorExtensions().filter(e => e.name !== 'dragHandle')
-    const editor = new Editor({ extensions })
+    const editor = new Editor({ extensions: createInlineEditorExtensions() })
 
     editor.commands.toggleBulletList()
     editor.commands.insertContent('one')

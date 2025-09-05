@@ -5,10 +5,7 @@ import "./setup";
 
 describe("task item data-type attribute", () => {
   it("sets data-type on task list items", () => {
-    const extensions = createInlineEditorExtensions().filter(
-      (e) => e.name !== "dragHandle",
-    );
-    const editor = new Editor({ extensions });
+    const editor = new Editor({ extensions: createInlineEditorExtensions() });
     editor.commands.toggleTaskList();
     editor.commands.insertContent("task");
     const listItem = editor.view.dom.querySelector("li");
