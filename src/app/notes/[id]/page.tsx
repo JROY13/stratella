@@ -31,16 +31,7 @@ export default async function NotePage({
   if (note.body == null) {
     console.warn(`Note ${id} has no body`);
   }
-
-  const escape = (s: string) =>
-    s
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
-  const html = body.trim().startsWith("<h1")
-    ? body
-    : `<h1>${escape(note.title ?? "")}</h1>${body}`;
+  const html = body;
 
   const openTasks = extractTasksFromHtml(body).filter(t => !t.checked).length;
   const created = note.created_at
