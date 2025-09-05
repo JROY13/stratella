@@ -33,11 +33,13 @@ export async function saveNoteInline(
   opts?: { revalidate?: boolean },
 ): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
-  const title = extractTitleFromHtml(html);
-  const openTasks = countOpenTasks(html);
+  const dom = new JSDOM(html);
+  const body = dom.window.document.body.innerHTML;
+  const title = extractTitleFromHtml(body);
+  const openTasks = countOpenTasks(body);
   let { data, error } = await supabase
     .from("notes")
-    .update({ title, body: html, open_tasks: openTasks })
+    .update({ title, body, open_tasks: openTasks })
     .eq("id", id)
     .eq("user_id", user.id)
     .select("updated_at")
@@ -46,7 +48,7 @@ export async function saveNoteInline(
     // title column does not exist; retry without it
     ({ data, error } = await supabase
       .from("notes")
-      .update({ body: html, open_tasks: openTasks })
+      .update({ body, open_tasks: openTasks })
       .eq("id", id)
       .eq("user_id", user.id)
       .select("updated_at")

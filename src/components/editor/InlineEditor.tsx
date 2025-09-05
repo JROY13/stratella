@@ -332,7 +332,6 @@ export default function InlineEditor({
 
   const runSave = React.useCallback(
     (html: string, opts?: { sync?: boolean }) => {
-      const docHtml = `<html><body>${html}</body></html>`;
       if (retryTimeout.current) {
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
@@ -342,7 +341,7 @@ export default function InlineEditor({
         setStatus("saving");
         try {
           const data = new Blob(
-            [JSON.stringify({ id: noteId, html: docHtml })],
+            [JSON.stringify({ id: noteId, html })],
             { type: "application/json" },
           );
           navigator.sendBeacon("/api/save-note-inline", data);
@@ -351,7 +350,7 @@ export default function InlineEditor({
         return Promise.resolve({ openTasks: 0, updatedAt: null });
       }
       return saveWithRetry(
-        () => saveNoteInline(noteId, docHtml, { revalidate: false }),
+        () => saveNoteInline(noteId, html, { revalidate: false }),
         setStatus,
         attempts,
         retryTimeout,
