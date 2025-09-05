@@ -26,12 +26,6 @@ vi.mock("tippy.js", () => {
   return tippy;
 });
 
-vi.mock("@tiptap/extension-drag-handle", async () => {
-  const actual =
-    await vi.importActual<typeof import("@tiptap/core")>("@tiptap/core");
-  return { default: actual.Extension.create({ name: "dragHandle" }) };
-});
-
 describe("InlineEditor initialization", () => {
   const renderEditor = (html: string | null) => {
     expect(() =>

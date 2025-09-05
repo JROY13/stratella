@@ -5,10 +5,7 @@ import "./setup";
 
 describe("title placeholder", () => {
   it("shows placeholder until typing and removes on input", () => {
-    const extensions = createInlineEditorExtensions().filter(
-      e => e.name !== "dragHandle",
-    );
-    const editor = new Editor({ extensions });
+    const editor = new Editor({ extensions: createInlineEditorExtensions() });
     editor.commands.setContent("<h1></h1>", false, { preserveWhitespace: true });
     const heading = editor.view.dom.querySelector("h1");
     expect(heading?.getAttribute("data-placeholder")).toBe("Untitled Note");

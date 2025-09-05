@@ -8,7 +8,6 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import DragHandle from "@tiptap/extension-drag-handle";
 import { Extension } from "@tiptap/core";
 import FloatingToolbar from "./FloatingToolbar";
 
@@ -248,7 +247,6 @@ export function createInlineEditorExtensions() {
           ? "Untitled Note"
           : "",
     }),
-    DragHandle,
     ArrowNavigation,
     HeadingExit,
   ];

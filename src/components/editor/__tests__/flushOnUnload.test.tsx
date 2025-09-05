@@ -23,11 +23,6 @@ vi.mock("tippy.js", () => {
   return tippy;
 });
 
-vi.mock("@tiptap/extension-drag-handle", async () => {
-  const actual = await vi.importActual<typeof import("@tiptap/core")>("@tiptap/core");
-  return { default: actual.Extension.create({ name: "dragHandle" }) };
-});
-
 describe("InlineEditor unload", () => {
   it("flushes pending save with sendBeacon on pagehide", () => {
     vi.useFakeTimers();
