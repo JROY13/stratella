@@ -82,7 +82,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           {groups.length === 0 ? (
             <p className="text-muted-foreground">{emptyMessage}</p>
           ) : view === 'card' ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               {groups.map(group => (
                 <Card key={group.id}>
                   <CardHeader>
