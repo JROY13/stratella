@@ -38,8 +38,9 @@ export default function TaskRow({ task, noteId, line }: TaskRowProps) {
   }
 
   return (
-    <li className="flex items-center gap-2">
+    <li className="flex items-start gap-2">
       <Checkbox
+        className="mt-1"
         checked={task.done}
         onCheckedChange={() => handleToggle()}
         aria-label={task.done ? 'Mark task incomplete' : 'Mark task complete'}
