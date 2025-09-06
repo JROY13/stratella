@@ -84,7 +84,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           ) : view === 'card' ? (
             <div className="grid gap-4 sm:grid-cols-2">
               {groups.map(group => (
-                <Card key={group.id}>
+                <Card key={group.id} className="hover:shadow-sm transition">
                   <CardHeader>
                     <CardTitle>
                       <NavButton
@@ -92,7 +92,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                         variant="link"
                         className="p-0 h-auto font-medium underline"
                       >
-                        {group.title}
+                        <span className="truncate block max-w-[12rem]">
+                          {group.title}
+                        </span>
                       </NavButton>
                     </CardTitle>
                   </CardHeader>
