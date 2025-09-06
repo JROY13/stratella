@@ -436,7 +436,7 @@ export default function InlineEditor({
       {editor && (
         <FloatingToolbar editor={editor} noteId={noteId} userId={userId} />
       )}
-      <div className="editor-prose prose prose-neutral dark:prose-invert max-w-none">
+      <div className="editor-prose prose prose-neutral dark:prose-invert max-w-none pb-6 prose-h1:mt-6 prose-h1:mb-4">
         <EditorContent editor={editor} />
       </div>
       <div className="text-xs text-muted-foreground text-right h-4">
