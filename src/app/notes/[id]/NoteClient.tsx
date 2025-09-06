@@ -51,7 +51,7 @@ export default function NoteClient({
     }
   }, [onDelete])
   return (
-    <div className="space-y-4 relative z-0">
+    <div className="max-w-screen-md mx-auto px-4 space-y-4 relative z-0">
       <NavButton
         href="/notes"
         variant="ghost"
