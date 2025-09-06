@@ -35,7 +35,7 @@ export default function TasksFilters({ notes, tags, children }: TasksFiltersProp
 
   return (
     <div className="mb-4 space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         {children}
         <button
           type="button"
