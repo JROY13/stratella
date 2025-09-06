@@ -57,7 +57,7 @@ export default function NoteClient({
         variant="ghost"
         size="icon"
         aria-label="Go back"
-        className="md:hidden"
+        className="md:hidden px-2"
       >
         <ArrowLeft className="h-5 w-5" />
       </NavButton>
