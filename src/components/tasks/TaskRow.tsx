@@ -53,7 +53,7 @@ export default function TaskRow({ task, noteId, line }: TaskRowProps) {
         onChange={handleDueChange}
         onClear={() => handleDueChange('')}
         variant="link"
-        className="h-auto p-0 text-blue-600 hover:underline dark:text-blue-500"
+        className="h-6 px-2 text-blue-600 hover:underline dark:text-blue-500"
       >
         {label}
       </DateFilterTrigger>

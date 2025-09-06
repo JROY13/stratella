@@ -94,7 +94,8 @@ export function FloatingToolbar({
       <div className="flex items-center gap-1 rounded-md border bg-background p-1 shadow-md">
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={editor.isActive("bold") ? "default" : "ghost"}
           onClick={handleBold}
           onKeyDown={(e) => {
@@ -108,7 +109,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={editor.isActive("italic") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           onKeyDown={(e) => {
@@ -122,7 +124,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={
             editor.isActive("heading", { level: 1 }) ? "default" : "ghost"
           }
@@ -140,7 +143,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={
             editor.isActive("heading", { level: 2 }) ? "default" : "ghost"
           }
@@ -158,7 +162,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={
             editor.isActive("heading", { level: 3 }) ? "default" : "ghost"
           }
@@ -176,7 +181,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={editor.isActive("bulletList") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           onKeyDown={(e) => {
@@ -190,7 +196,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={editor.isActive("orderedList") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           onKeyDown={(e) => {
@@ -204,7 +211,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={editor.isActive("taskList") ? "default" : "ghost"}
           onClick={handleToggleTaskList}
           onKeyDown={(e) => {
@@ -218,7 +226,8 @@ export function FloatingToolbar({
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="sm"
+          className="p-2"
           variant={editor.isActive("blockquote") ? "default" : "ghost"}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           onKeyDown={(e) => {
