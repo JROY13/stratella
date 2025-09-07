@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { supabaseServer } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { deleteNote } from "@/app/actions";
+import { revalidatePath } from "next/cache";
 import NoteClient from "./NoteClient";
 import { extractTasksFromHtml } from "@/lib/taskparse";
 
@@ -47,6 +48,7 @@ export default async function NotePage({
   async function onDelete() {
     "use server";
     await deleteNote(noteId);
+    revalidatePath("/notes");
     redirect("/notes");
   }
 

@@ -10,6 +10,8 @@ import { NavButton } from '@/components/NavButton'
 import { NotesClient } from './NotesClient'
 import { extractTitleFromHtml } from '@/lib/note'
 
+const EMPTY_HTML = '<h1></h1>'
+
 export default async function NotesPage() {
   const supabase = await supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
@@ -23,7 +25,7 @@ export default async function NotesPage() {
   const enriched: Note[] = (notes ?? [])
     .filter(n => {
       const body = (n.body ?? '').trim()
-      return body !== '' && body !== '<h1></h1>'
+      return body !== '' && body !== EMPTY_HTML
     })
       .map(n => ({
         id: n.id,
