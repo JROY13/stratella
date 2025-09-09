@@ -187,6 +187,54 @@ export default function SignInForm() {
         )}
       </div>
 
+      <div className="text-center text-xs text-muted-foreground">
+        {mode === 'sign_up' ? (
+          <>
+            By signing up, you agree to our{' '}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              Privacy Policy
+            </a>
+            .
+          </>
+        ) : (
+          <>
+            By signing in, you agree to our{' '}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              Privacy Policy
+            </a>
+            .
+          </>
+        )}
+      </div>
+
       {err && <p className="text-sm text-destructive text-center">{err}</p>}
       {msg && <p className="text-sm text-muted-foreground text-center">{msg}</p>}
     </form>
