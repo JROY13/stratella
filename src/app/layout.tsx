@@ -1,6 +1,8 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import { supabaseServer } from '@/lib/supabase-server'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://stratella.vercel.app'),
@@ -14,12 +16,18 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image' },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = supabaseServer()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-[radial-gradient(60%_40%_at_50%_-10%,hsl(var(--primary)/0.08),transparent)] bg-background text-foreground">
         <Header />
         <main className="mx-auto max-w-5xl p-4">{children}</main>
+        {!session && <Footer />}
       </body>
     </html>
   )
