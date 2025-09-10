@@ -74,3 +74,12 @@ Replace `<sample note body>` with the exact string defined in `src/app/api/init-
 
 - TipTap uses an `<h1>` block as the note title and removes the “Untitled Note” placeholder once typing begins.
 - Empty notes are automatically deleted when the editor blurs or the page unloads without any user input.
+
+## Legal
+
+Static Terms of Service and Privacy Policy pages are available at `/terms` and `/privacy`.
+These routes render the HTML in `public/legal/tos.html` and `public/legal/privacy.html`.
+Links to both pages appear in the footer and on the sign-in form and open in a new tab.
+
+To update the legal copy, edit the respective HTML files in `public/legal/`.
+Only the contents inside each file's `<body>` tag are injected into the page.
