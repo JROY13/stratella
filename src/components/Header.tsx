@@ -2,11 +2,28 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { supabaseClient } from "@/lib/supabase-client";
 import UserMenu from "@/components/UserMenu";
 
 export default function Header() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function signOut() {
+    setLoading(true);
+    try {
+      await supabaseClient.auth.signOut();
+      router.replace("/login");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto max-w-5xl h-14 px-4 flex items-center justify-between">
@@ -61,6 +78,26 @@ export default function Header() {
                   className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
                   Notes
+                </Link>
+                <button
+                  onClick={signOut}
+                  disabled={loading}
+                  className="rounded px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                >
+                  {loading ? "Signing out…" : "Sign out"}
+                </button>
+                <Separator className="my-2" />
+                <Link
+                  href="/terms"
+                  className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Terms
+                </Link>
+                <Link
+                  href="/privacy"
+                  className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Privacy
                 </Link>
               </nav>
             </SheetContent>
