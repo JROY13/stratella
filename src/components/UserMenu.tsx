@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,21 +19,11 @@ export default function UserMenu() {
   const [loading, setLoading] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") {
-        router.replace("/login");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [router]);
-
   async function signOut() {
     setLoading(true);
     try {
       await supabaseClient.auth.signOut();
+      router.replace("/login");
     } finally {
       setLoading(false);
     }
