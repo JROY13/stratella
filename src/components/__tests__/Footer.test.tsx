@@ -22,6 +22,10 @@ describe('Footer', () => {
     expect(about.getAttribute('href')).toBe('/about')
     expect(about.getAttribute('target')).toBeNull()
 
+    const why = getByRole('link', { name: 'Why Stratella' }) as HTMLAnchorElement
+    expect(why.getAttribute('href')).toBe('/why-stratella')
+    expect(why.getAttribute('target')).toBeNull()
+
     const privacy = getByRole('link', { name: 'Privacy Policy' }) as HTMLAnchorElement
     expect(privacy.getAttribute('href')).toBe('/privacy')
     expect(privacy.getAttribute('target')).toBe('_blank')
