@@ -22,6 +22,12 @@ export default function Footer() {
               About
             </Link>
             <Link
+              href="/why-stratella"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Why Stratella
+            </Link>
+            <Link
               href="/privacy"
               target="_blank"
               rel="noopener noreferrer"
