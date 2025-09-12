@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -13,6 +14,28 @@ import UserMenu from "@/components/UserMenu";
 export default function Header() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabaseClient.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (mounted) setSession(session);
+      });
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setSession(session);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   async function signOut() {
     setLoading(true);
@@ -79,13 +102,15 @@ export default function Header() {
                 >
                   Notes
                 </Link>
-                <button
-                  onClick={signOut}
-                  disabled={loading}
-                  className="rounded px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
-                >
-                  {loading ? "Signing out…" : "Sign out"}
-                </button>
+                {session && (
+                  <button
+                    onClick={signOut}
+                    disabled={loading}
+                    className="rounded px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {loading ? "Signing out…" : "Sign out"}
+                  </button>
+                )}
                 <Separator className="my-2" />
                 <Link
                   href="/why-stratella"
@@ -126,7 +151,13 @@ export default function Header() {
           >
             About
           </Link>
-          <UserMenu />
+          {session ? (
+            <UserMenu />
+          ) : (
+            <Link href="/login">
+              <Button variant="outline">Login</Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
