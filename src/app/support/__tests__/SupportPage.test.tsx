@@ -7,7 +7,8 @@ test('shows support email link and FAQ', () => {
   const { getByRole, getByText } = render(<SupportPage />)
   const email = getByRole('link', { name: 'support@canvasinnovations.io' }) as HTMLAnchorElement
   expect(email.getAttribute('href')).toBe('mailto:support@canvasinnovations.io')
-  getByText('How do Tasks work?')
-  getByText('What can I do with Notes?')
-  getByText('How much does Stratella cost?')
+  getByText('How do I create a task in a note?')
+  getByText('Where do all my tasks live?')
+  getByText('What are Notes for?')
+  getByText('Can I collaborate with teammates?')
 })

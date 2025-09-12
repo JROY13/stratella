@@ -15,25 +15,32 @@ export default function SupportPage() {
       <section className="mt-6">
         <h2>FAQ</h2>
         <dl className="space-y-4">
-          <div>
-            <dt>How do Tasks work?</dt>
+          <div className="space-y-2">
+            <dt>How do I create a task in a note?</dt>
             <dd>
-              Tasks move through a simple workflow—create a task, track its
-              progress, and mark it complete when finished.
+              Type <code>[]</code> or right-click selected text to turn it into a
+              task. Tasks automatically appear in your Task List.
             </dd>
           </div>
-          <div>
-            <dt>What can I do with Notes?</dt>
+          <div className="space-y-2">
+            <dt>Where do all my tasks live?</dt>
             <dd>
-              Use notes to brainstorm ideas and link them to related tasks for
-              easy reference.
+              All tasks collect in your centralized Task List, where you can
+              filter and sort to stay organized.
             </dd>
           </div>
-          <div>
-            <dt>How much does Stratella cost?</dt>
+          <div className="space-y-2">
+            <dt>What are Notes for?</dt>
             <dd>
-              Stratella offers a free tier with additional features available on
-              paid plans.
+              Notes are fast, keyboard-friendly Markdown documents perfect for
+              brainstorming.
+            </dd>
+          </div>
+          <div className="space-y-2">
+            <dt>Can I collaborate with teammates?</dt>
+            <dd>
+              Stratella is currently single-user only, but collaboration
+              features are on our roadmap.
             </dd>
           </div>
         </dl>
