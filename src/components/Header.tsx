@@ -1,37 +1,12 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { supabaseClient } from '@/lib/supabase-client'
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import UserMenu from "@/components/UserMenu";
 
 export default function Header() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_OUT') {
-        router.replace('/login')
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [router])
-
-  async function signOut() {
-    setLoading(true)
-    try {
-      await supabaseClient.auth.signOut()
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto max-w-5xl h-14 px-4 flex items-center justify-between">
@@ -62,28 +37,38 @@ export default function Header() {
                 aria-label="Open menu"
               >
                 {/* simple burger icon (no extra deps) */}
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
                 </svg>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64">
               <nav className="mt-6 grid gap-2">
-                <Link href="/tasks" className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground">Tasks</Link>
-                <Link href="/notes" className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground">Notes</Link>
-                <Button onClick={signOut} variant="outline" className="mt-4 justify-self-start" disabled={loading}>
-                  {loading ? 'Signing out…' : 'Sign out'}
-                </Button>
+                <Link
+                  href="/tasks"
+                  className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Tasks
+                </Link>
+                <Link
+                  href="/notes"
+                  className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Notes
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>
 
-          {/* Desktop sign out */}
-          <Button variant="outline" onClick={signOut} disabled={loading} className="hidden md:inline-flex">
-            {loading ? 'Signing out…' : 'Sign out'}
-          </Button>
+          <UserMenu />
         </div>
       </div>
     </header>
-  )
+  );
 }
