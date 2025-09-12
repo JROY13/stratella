@@ -61,8 +61,14 @@ describe('UserMenu', () => {
     expect(getByText('Terms')).toBeTruthy()
     expect(getByText('Privacy')).toBeTruthy()
     expect(getByText('Support')).toBeTruthy()
-    expect(getByText('Email support')).toBeTruthy()
     expect(getByText('Keyboard shortcuts')).toBeTruthy()
+
+    const emailLink = getByRole('link', {
+      name: 'Email support',
+    }) as HTMLAnchorElement
+    expect(emailLink.getAttribute('href')).toBe(
+      'mailto:support@canvasinnovations.io'
+    )
 
     fireEvent.click(getByText('Sign out'))
     await waitFor(() => expect(supabaseClient.auth.signOut).toHaveBeenCalled())

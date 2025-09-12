@@ -64,7 +64,7 @@ export default function UserMenu() {
             <Link href="/support">Support</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="mailto:support@example.com">Email support</Link>
+            <Link href="mailto:support@canvasinnovations.io">Email support</Link>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setShortcutsOpen(true)}>
             Keyboard shortcuts

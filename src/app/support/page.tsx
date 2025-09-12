@@ -6,7 +6,7 @@ export default function SupportPage() {
       <h1>Support</h1>
       <p>
         Need help? Contact us at{' '}
-        <a href="mailto:support@example.com">support@example.com</a>.
+        <a href="mailto:support@canvasinnovations.io">support@canvasinnovations.io</a>.
       </p>
       <p>
         You can also browse our frequently asked questions to find common
