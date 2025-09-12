@@ -15,8 +15,12 @@ vi.mock('next/link', () => ({
 import Footer from '../Footer'
 
 describe('Footer', () => {
-  it('renders legal links with target="_blank"', () => {
+  it('renders footer links', () => {
     const { getByRole } = render(<Footer />)
+
+    const about = getByRole('link', { name: 'About' }) as HTMLAnchorElement
+    expect(about.getAttribute('href')).toBe('/about')
+    expect(about.getAttribute('target')).toBeNull()
 
     const privacy = getByRole('link', { name: 'Privacy Policy' }) as HTMLAnchorElement
     expect(privacy.getAttribute('href')).toBe('/privacy')
