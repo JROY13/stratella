@@ -75,6 +75,17 @@ Replace `<sample note body>` with the exact string defined in `src/app/api/init-
 - TipTap uses an `<h1>` block as the note title and removes the “Untitled Note” placeholder once typing begins.
 - Empty notes are automatically deleted when the editor blurs or the page unloads without any user input.
 
+## User settings dropdown
+
+Click your avatar in the header to open a menu with quick account actions. The dropdown provides shortcuts for:
+
+- **Keyboard shortcuts** – view a list of available editor commands.
+- **Support** – visit the help center for documentation or contact options.
+- **Legal** – open the Terms of Service and Privacy Policy pages.
+- **Sign out** – log out of the current session.
+
+Click outside the menu or press `Esc` to close it.
+
 ## Legal
 
 Static Terms of Service and Privacy Policy pages are available at `/terms` and `/privacy`.
