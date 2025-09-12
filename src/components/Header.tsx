@@ -88,6 +88,12 @@ export default function Header() {
                 </button>
                 <Separator className="my-2" />
                 <Link
+                  href="/about"
+                  className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                >
+                  About
+                </Link>
+                <Link
                   href="/terms"
                   className="rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
@@ -102,7 +108,12 @@ export default function Header() {
               </nav>
             </SheetContent>
           </Sheet>
-
+          <Link
+            href="/about"
+            className="hidden md:block rounded px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+          >
+            About
+          </Link>
           <UserMenu />
         </div>
       </div>
