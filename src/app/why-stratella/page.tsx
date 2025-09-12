@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { FileText, CheckCircle, Globe } from 'lucide-react'
+import { FileText, ListChecks, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Why Stratella | Remote Product Team Collaboration',
+  title: 'Why Stratella | Notes that capture tasks automatically',
   description:
-    'Discover how Stratella keeps distributed product teams collaborating securely and shipping faster.',
+    'Capture notes, turn checkboxes into tasks, and stay organized without hunting through dozens of docs.',
 }
 
 export default function WhyStratellaPage() {
@@ -15,11 +15,11 @@ export default function WhyStratellaPage() {
       <section className="space-y-6 text-center">
         <h1 className="text-4xl font-bold tracking-tight">Why Stratella</h1>
         <p className="text-lg text-muted-foreground">
-          From brainstorm to backlog, Stratella keeps your remote product team aligned.
+          Capture notes, turn checkboxes into tasks, and see every action item in one place.
         </p>
         <div className="flex justify-center gap-4">
           <Button asChild>
-            <Link href="/login">Get Started</Link>
+            <Link href="/login">Start capturing tasks</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/about">Learn More</Link>
@@ -29,23 +29,23 @@ export default function WhyStratellaPage() {
       <section className="grid gap-12 md:grid-cols-3">
         <div className="flex flex-col items-center text-center space-y-3">
           <FileText className="h-10 w-10 text-primary" />
-          <h2 className="text-xl font-semibold">Collaborative Specs</h2>
+          <h2 className="text-xl font-semibold">Fast Markdown Notes</h2>
           <p className="text-muted-foreground">
-            Keep ideas, decisions, and docs in sync so everyone builds from the same page.
+            Create notes instantly with keyboard-friendly editing.
           </p>
         </div>
         <div className="flex flex-col items-center text-center space-y-3">
-          <CheckCircle className="h-10 w-10 text-primary" />
-          <h2 className="text-xl font-semibold">Enterprise Security</h2>
+          <ListChecks className="h-10 w-10 text-primary" />
+          <h2 className="text-xl font-semibold">Tasks Automatically Collected</h2>
           <p className="text-muted-foreground">
-            Granular permissions and audit trails safeguard your roadmap and customer data.
+            Checkboxes in any note show up in your Task List.
           </p>
         </div>
         <div className="flex flex-col items-center text-center space-y-3">
-          <Globe className="h-10 w-10 text-primary" />
-          <h2 className="text-xl font-semibold">Built for Speed</h2>
+          <Filter className="h-10 w-10 text-primary" />
+          <h2 className="text-xl font-semibold">Stay Organized</h2>
           <p className="text-muted-foreground">
-            Real-time updates keep globally distributed teams moving quickly from idea to release.
+            Filter and sort tasks without hunting through dozens of notes.
           </p>
         </div>
       </section>
