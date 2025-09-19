@@ -4,8 +4,16 @@ import { describe, it, expect, vi } from "vitest";
 import "./setup";
 
 vi.mock("@/app/actions", () => ({
-  saveNoteInline: vi.fn(() =>
-    Promise.resolve({ openTasks: 0, updatedAt: "2024-01-02T00:00:00.000Z" })
+  saveNoteInline: vi.fn((id: string) =>
+    Promise.resolve({ id, openTasks: 0, updatedAt: "2024-01-02T00:00:00.000Z" })
+  ),
+  upsertNoteWithClientId: vi.fn(() =>
+    Promise.resolve({
+      id: "note",
+      openTasks: 0,
+      updatedAt: "2024-01-02T00:00:00.000Z",
+      title: "Untitled",
+    })
   ),
 }));
 

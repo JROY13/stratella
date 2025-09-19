@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabaseClient } from "@/lib/supabase-client";
 import UserMenu from "@/components/UserMenu";
+import { QuickCaptureButton } from "@/components/quick-capture/QuickCaptureButton";
 
 export default function Header() {
   const router = useRouter();
@@ -151,6 +152,25 @@ export default function Header() {
           >
             About
           </Link>
+          {session && (
+            <>
+              <QuickCaptureButton
+                className="md:hidden"
+                size="icon"
+                variant="ghost"
+                showIcon
+                aria-label="Quick capture note"
+              >
+                <span className="sr-only">Quick capture</span>
+              </QuickCaptureButton>
+              <QuickCaptureButton
+                className="hidden md:inline-flex"
+                size="sm"
+              >
+                Quick capture
+              </QuickCaptureButton>
+            </>
+          )}
           {session ? (
             <UserMenu />
           ) : (

@@ -6,10 +6,19 @@ import { countOpenTasks } from "@/lib/taskparse";
 import "./setup";
 
 vi.mock("@/app/actions", () => ({
-  saveNoteInline: vi.fn((_: string, html: string) =>
+  saveNoteInline: vi.fn((id: string, html: string) =>
     Promise.resolve({
+      id,
       openTasks: countOpenTasks(html),
       updatedAt: "2024-01-02T00:00:00.000Z",
+    }),
+  ),
+  upsertNoteWithClientId: vi.fn((html: string) =>
+    Promise.resolve({
+      id: "note",
+      openTasks: countOpenTasks(html),
+      updatedAt: "2024-01-02T00:00:00.000Z",
+      title: "Untitled",
     }),
   ),
 }));
@@ -43,6 +52,7 @@ describe("InlineEditor autosave", () => {
 
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
     expect(onSaved).toHaveBeenCalledWith({
+      id: "note",
       openTasks: 1,
       updatedAt: "2024-01-02T00:00:00.000Z",
     });

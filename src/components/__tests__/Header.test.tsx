@@ -46,6 +46,14 @@ vi.mock('@/lib/supabase-client', () => ({
 }))
 
 import Header from '../Header'
+import { QuickCaptureProvider } from '@/components/quick-capture/QuickCaptureProvider'
+
+const renderHeader = () =>
+  render(
+    <QuickCaptureProvider>
+      <Header />
+    </QuickCaptureProvider>,
+  )
 
 describe('Header', () => {
   beforeEach(() => {
@@ -55,14 +63,14 @@ describe('Header', () => {
   it('shows Login when no session', async () => {
     getSession.mockResolvedValueOnce({ data: { session: null } })
 
-    const { findByText } = render(<Header />)
+    const { findByText } = renderHeader()
     expect(await findByText('Login')).toBeTruthy()
   })
 
   it('shows Account when session exists', async () => {
     getSession.mockResolvedValueOnce({ data: { session: {} } })
 
-    const { findByText, queryByText } = render(<Header />)
+    const { findByText, queryByText } = renderHeader()
     expect(await findByText('Account')).toBeTruthy()
     expect(queryByText('Login')).toBeNull()
   })
