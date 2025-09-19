@@ -19,37 +19,106 @@ vi.mock("@/app/actions", () => ({
   setTaskDueFromNote: vi.fn(),
 }));
 
-  const notes = [
-    {
-      id: "n1",
-      updated_at: "2024-01-01T00:00:00Z",
-      body: '<h1>Note A</h1><ul><li data-type="taskItem" data-checked="false"><div>Task 1</div></li></ul>',
-    },
-    {
-      id: "n2",
-      updated_at: "2024-01-02T00:00:00Z",
-      body: '<h1>Note B</h1><ul><li data-type="taskItem" data-checked="false"><div>Task 2</div></li></ul>',
-    },
-  ];
+const notes = [
+  {
+    id: "n1",
+    title: "Note A",
+    updated_at: "2024-01-01T00:00:00Z",
+    body: '<h1>Note A</h1><ul><li data-type="taskItem" data-checked="false"><div>Task 1</div></li></ul>',
+  },
+  {
+    id: "n2",
+    title: "Note B",
+    updated_at: "2024-01-02T00:00:00Z",
+    body: '<h1>Note B</h1><ul><li data-type="taskItem" data-checked="false"><div>Task 2</div></li></ul>',
+  },
+];
+
+const taskRows = [
+  {
+    note_id: "n1",
+    line: 0,
+    text: "Task 1",
+    tags: [],
+    due: null,
+    status: null,
+    is_completed: false,
+    note_title: "Note A",
+    note_updated_at: "2024-01-01T00:00:00Z",
+    highlight: null,
+    rank: 0,
+  },
+  {
+    note_id: "n2",
+    line: 0,
+    text: "Task 2",
+    tags: [],
+    due: null,
+    status: null,
+    is_completed: false,
+    note_title: "Note B",
+    note_updated_at: "2024-01-02T00:00:00Z",
+    highlight: null,
+    rank: 0,
+  },
+];
+
+const supabaseMock = {
+  auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
+  from: (table: string) => {
+    if (table === "notes") {
+      return {
+        select: () => ({
+          order: () => Promise.resolve({ data: notes }),
+        }),
+      };
+    }
+    if (table === "note_tasks") {
+      return {
+        select: () => Promise.resolve({ data: [{ tags: [] }] }),
+      };
+    }
+    return {
+      select: () => Promise.resolve({ data: [] }),
+    };
+  },
+  rpc: (fn: string) => {
+    if (fn === "search_note_tasks") {
+      return Promise.resolve({ data: taskRows });
+    }
+    return Promise.resolve({ data: [] });
+  },
+};
 
 vi.mock("@/lib/supabase-server", () => ({
-  supabaseServer: async () => ({
-    auth: { getUser: async () => ({ data: { user: {} } }) },
-    from: () => ({
-      select: () => ({
-        order: () => Promise.resolve({ data: notes }),
-      }),
-    }),
-  }),
+  supabaseServer: async () => supabaseMock,
 }));
+
+beforeEach(() => {
+  (global.fetch as unknown as vi.Mock | undefined)?.mockRestore?.();
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ results: taskRows.map(row => ({
+      noteId: row.note_id,
+      line: row.line,
+      text: row.text,
+      tags: row.tags,
+      due: row.due,
+      status: row.status,
+      isCompleted: row.is_completed,
+      noteTitle: row.note_title,
+      noteUpdatedAt: row.note_updated_at,
+      highlight: row.highlight,
+      rank: row.rank,
+    })) }),
+  }) as unknown as typeof fetch;
+});
 
 import TasksPage from "../page";
 
 test("renders list view by default", async () => {
   params.set("view", "list");
-  const { container } = render(
-    await TasksPage({ searchParams: Promise.resolve({ view: "list" }) })
-  );
+  const { container } = render(await TasksPage({ searchParams: Promise.resolve({ view: "list" }) }));
   expect(container.querySelectorAll('[data-slot="card"]').length).toBe(1);
   expect(screen.getByText("Note A")).toBeTruthy();
   expect(screen.getByText("Note B")).toBeTruthy();
@@ -57,9 +126,7 @@ test("renders list view by default", async () => {
 
 test("renders card view when view=card", async () => {
   params.set("view", "card");
-  const { container } = render(
-    await TasksPage({ searchParams: Promise.resolve({ view: "card" }) })
-  );
+  const { container } = render(await TasksPage({ searchParams: Promise.resolve({ view: "card" }) }));
   // outer card + two note group cards
   expect(container.querySelectorAll('[data-slot="card"]').length).toBe(3);
 });

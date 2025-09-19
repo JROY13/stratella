@@ -4,8 +4,42 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { JSDOM } from "jsdom";
 import { randomUUID } from "crypto";
-import { countOpenTasks } from "@/lib/taskparse";
+import { countOpenTasks, extractTasksFromHtml } from "@/lib/taskparse";
 import { extractTitleFromHtml } from "@/lib/note";
+type SupabaseServerClient = Awaited<ReturnType<typeof supabaseServer>>;
+
+async function syncNoteTasks(
+  supabase: SupabaseServerClient,
+  noteId: string,
+  html: string,
+): Promise<void> {
+  const tasks = extractTasksFromHtml(html);
+  const rows = tasks.map((task) => ({
+    note_id: noteId,
+    line: task.line,
+    text: task.text,
+    tags: task.tags,
+    due: task.due ?? null,
+    status: task.status ?? null,
+    is_completed: task.checked,
+  }));
+
+  const { error: deleteError } = await supabase.from("note_tasks").delete().eq("note_id", noteId);
+  if (deleteError) {
+    console.error(deleteError);
+    throw deleteError;
+  }
+
+  if (rows.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await supabase.from("note_tasks").insert(rows);
+  if (insertError) {
+    console.error(insertError);
+    throw insertError;
+  }
+}
 
 export async function requireUser() {
   const supabase = await supabaseServer(); // <-- await here
@@ -70,6 +104,7 @@ export async function saveNoteInline(
     console.error(error);
     throw error;
   }
+  await syncNoteTasks(supabase, id, body);
   const { revalidate = true } = opts ?? {};
   if (revalidate !== false) {
     revalidatePath(`/notes/${id}`);
@@ -112,6 +147,7 @@ export async function upsertNoteWithClientId(
     console.error(error);
     throw error;
   }
+  await syncNoteTasks(supabase, id, body);
   const { revalidate = true } = opts ?? {};
   if (revalidate !== false) {
     revalidatePath(`/notes/${id}`);
@@ -168,6 +204,7 @@ async function toggleTask(noteId: string, taskLine: number) {
     .update({ body: nextBody })
     .eq("id", noteId)
     .eq("user_id", user.id);
+  await syncNoteTasks(supabase, noteId, nextBody);
 }
 
 export async function toggleTaskFromNote(noteId: string, taskLine: number) {
@@ -205,6 +242,7 @@ export async function setTaskDueFromNote(
     .update({ body: nextBody })
     .eq("id", noteId)
     .eq("user_id", user.id);
+  await syncNoteTasks(supabase, noteId, nextBody);
   revalidatePath("/notes");
   revalidatePath(`/notes/${noteId}`);
   revalidatePath("/tasks");
