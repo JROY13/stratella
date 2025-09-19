@@ -3,6 +3,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { JSDOM } from "jsdom";
+import { randomUUID } from "crypto";
 import { countOpenTasks } from "@/lib/taskparse";
 import { extractTitleFromHtml } from "@/lib/note";
 
@@ -27,22 +28,33 @@ export async function createNote(title?: string) {
   return data?.id as string;
 }
 
+export type SaveNoteInlineResult = {
+  id: string;
+  openTasks: number;
+  updatedAt: string | null;
+};
+
+function serializeEditorHtml(html: string) {
+  const dom = new JSDOM(html);
+  const body = dom.window.document.body.innerHTML;
+  const title = extractTitleFromHtml(body);
+  const openTasks = countOpenTasks(body);
+  return { body, title, openTasks };
+}
+
 export async function saveNoteInline(
   id: string,
   html: string,
   opts?: { revalidate?: boolean },
 ): Promise<SaveNoteInlineResult> {
   const { supabase, user } = await requireUser();
-  const dom = new JSDOM(html);
-  const body = dom.window.document.body.innerHTML;
-  const title = extractTitleFromHtml(body);
-  const openTasks = countOpenTasks(body);
+  const { body, title, openTasks } = serializeEditorHtml(html);
   let { data, error } = await supabase
     .from("notes")
     .update({ title, body, open_tasks: openTasks })
     .eq("id", id)
     .eq("user_id", user.id)
-    .select("updated_at")
+    .select("id, updated_at")
     .single();
   if (error?.code === "42703") {
     // title column does not exist; retry without it
@@ -51,7 +63,7 @@ export async function saveNoteInline(
       .update({ body, open_tasks: openTasks })
       .eq("id", id)
       .eq("user_id", user.id)
-      .select("updated_at")
+      .select("id, updated_at")
       .single());
   }
   if (error) {
@@ -64,13 +76,55 @@ export async function saveNoteInline(
     revalidatePath("/notes");
     revalidatePath("/tasks");
   }
-  return { openTasks, updatedAt: data?.updated_at ?? null };
+  return {
+    id,
+    openTasks,
+    updatedAt: data?.updated_at ?? null,
+  };
 }
 
-export type SaveNoteInlineResult = {
-  openTasks: number;
-  updatedAt: string | null;
-};
+export async function upsertNoteWithClientId(
+  html: string,
+  opts?: { id?: string; revalidate?: boolean },
+): Promise<SaveNoteInlineResult & { title: string }> {
+  const { supabase, user } = await requireUser();
+  const { body, title, openTasks } = serializeEditorHtml(html);
+  const id = opts?.id ?? randomUUID();
+  let { data, error } = await supabase
+    .from("notes")
+    .upsert(
+      { id, user_id: user.id, title, body, open_tasks: openTasks },
+      { onConflict: "id" },
+    )
+    .select("id, updated_at, title")
+    .single();
+  if (error?.code === "42703") {
+    ({ data, error } = await supabase
+      .from("notes")
+      .upsert(
+        { id, user_id: user.id, body, open_tasks: openTasks },
+        { onConflict: "id" },
+      )
+      .select("id, updated_at, title")
+      .single());
+  }
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  const { revalidate = true } = opts ?? {};
+  if (revalidate !== false) {
+    revalidatePath(`/notes/${id}`);
+    revalidatePath("/notes");
+    revalidatePath("/tasks");
+  }
+  return {
+    id,
+    openTasks,
+    updatedAt: data?.updated_at ?? null,
+    title: data?.title ?? title,
+  };
+}
 
 export async function deleteNote(id: string) {
   const { supabase, user } = await requireUser();

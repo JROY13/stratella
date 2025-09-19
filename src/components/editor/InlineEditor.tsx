@@ -1,7 +1,11 @@
 "use client";
 
 import React from "react";
-import { saveNoteInline, type SaveNoteInlineResult } from "@/app/actions";
+import {
+  saveNoteInline,
+  upsertNoteWithClientId,
+  type SaveNoteInlineResult,
+} from "@/app/actions";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
@@ -22,14 +26,14 @@ async function getDOMPurify(): Promise<DOMPurifyType> {
 }
 
 export interface InlineEditorProps {
-  noteId: string;
+  noteId?: string;
   html: string;
   onChange?: (html: string) => void;
   onSaved?: (res: SaveNoteInlineResult) => void;
   onBlur?: () => void;
 }
 
-export const AUTOSAVE_THROTTLE_MS = 3000;
+export const AUTOSAVE_THROTTLE_MS = 700;
 
 export type SaveStatus = "saving" | "saved" | "retrying";
 
@@ -259,6 +263,8 @@ export default function InlineEditor({
   onSaved,
   onBlur,
 }: InlineEditorProps) {
+  const [resolvedNoteId] = React.useState(() => noteId ?? crypto.randomUUID());
+  const hasPersistedRef = React.useRef(Boolean(noteId));
   const editor = useEditor({
     extensions: createInlineEditorExtensions(),
     editorProps: {
@@ -336,32 +342,49 @@ export default function InlineEditor({
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
       }
-      if (opts?.sync && navigator.sendBeacon) {
+      if (opts?.sync && navigator.sendBeacon && hasPersistedRef.current) {
         attempts.current = 0;
         setStatus("saving");
         try {
           const data = new Blob(
-            [JSON.stringify({ id: noteId, html })],
+            [JSON.stringify({ id: resolvedNoteId, html })],
             { type: "application/json" },
           );
           navigator.sendBeacon("/api/save-note-inline", data);
         } catch {}
         setStatus("saved");
-        return Promise.resolve({ openTasks: 0, updatedAt: null });
+        return Promise.resolve({
+          id: resolvedNoteId,
+          openTasks: 0,
+          updatedAt: null,
+        });
       }
       return saveWithRetry(
-        () => saveNoteInline(noteId, html, { revalidate: false }),
+        () => {
+          const action = hasPersistedRef.current
+            ? saveNoteInline(resolvedNoteId, html, { revalidate: false })
+            : upsertNoteWithClientId(html, {
+                id: resolvedNoteId,
+                revalidate: false,
+              });
+          return action.then((result) => {
+            if (!hasPersistedRef.current) {
+              hasPersistedRef.current = true;
+            }
+            return result;
+          });
+        },
         setStatus,
         attempts,
         retryTimeout,
       )
-        .then(res => {
+        .then((res) => {
           onSaved?.(res);
           return res;
         })
-        .catch(() => {});
+        .catch(() => undefined);
     },
-    [noteId, onSaved],
+    [onSaved, resolvedNoteId],
   );
 
   React.useEffect(() => {
@@ -401,7 +424,7 @@ export default function InlineEditor({
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       if (retryTimeout.current) clearTimeout(retryTimeout.current);
     };
-  }, [editor, noteId, onChange, onBlur, runSave]);
+  }, [editor, onChange, onBlur, runSave]);
 
   React.useEffect(() => {
     if (!editor) return;
@@ -434,7 +457,11 @@ export default function InlineEditor({
   return (
     <div className="space-y-1">
       {editor && (
-        <FloatingToolbar editor={editor} noteId={noteId} userId={userId} />
+        <FloatingToolbar
+          editor={editor}
+          noteId={resolvedNoteId}
+          userId={userId}
+        />
       )}
       <div className="editor-prose prose prose-neutral dark:prose-invert max-w-none pb-6 prose-h1:mt-6 prose-h1:mb-4">
         <EditorContent editor={editor} />

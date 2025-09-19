@@ -6,8 +6,11 @@ import "./setup";
 
 vi.mock("@/app/actions", () => ({
   saveNoteInline: vi
-    .fn()
-    .mockResolvedValue({ openTasks: 0, updatedAt: null }),
+    .fn((id: string) =>
+      Promise.resolve({ id, openTasks: 0, updatedAt: null }),
+    ),
+  upsertNoteWithClientId: vi
+    .fn(() => Promise.resolve({ id: "note", openTasks: 0, updatedAt: null, title: "" })),
 }));
 
 vi.mock("../FloatingToolbar", () => ({

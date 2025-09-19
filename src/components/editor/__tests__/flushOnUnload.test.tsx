@@ -6,7 +6,12 @@ import InlineEditor, { AUTOSAVE_THROTTLE_MS } from "../InlineEditor";
 import "./setup";
 
 vi.mock("@/app/actions", () => ({
-  saveNoteInline: vi.fn(() => Promise.resolve({ openTasks: 0, updatedAt: null })),
+  saveNoteInline: vi
+    .fn((id: string) => Promise.resolve({ id, openTasks: 0, updatedAt: null })),
+  upsertNoteWithClientId: vi
+    .fn(() =>
+      Promise.resolve({ id: "note", openTasks: 0, updatedAt: null, title: "" }),
+    ),
 }));
 
 vi.mock("../FloatingToolbar", () => ({
@@ -36,7 +41,7 @@ describe("InlineEditor unload", () => {
     fireEvent.input(editorEl);
 
     act(() => {
-      vi.advanceTimersByTime(AUTOSAVE_THROTTLE_MS - 1000);
+      vi.advanceTimersByTime(Math.max(AUTOSAVE_THROTTLE_MS - 100, 0));
     });
     act(() => {
       window.dispatchEvent(new Event("pagehide"));
@@ -57,7 +62,7 @@ describe("InlineEditor unload", () => {
     fireEvent.input(editorEl);
 
     act(() => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(Math.max(AUTOSAVE_THROTTLE_MS - 100, 0));
     });
     const ev = new Event("beforeunload", { cancelable: true });
     act(() => {
