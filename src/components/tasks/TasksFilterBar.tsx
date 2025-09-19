@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import DateFilterTrigger from './DateFilterTrigger'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import type { TaskFilters } from '@/lib/taskparse'
 import { track } from '@/lib/analytics'
 
@@ -15,6 +16,7 @@ interface NoteOption {
 
 interface FilterState extends TaskFilters {
   note?: string
+  search?: string
 }
 
 interface TasksFilterBarProps {
@@ -32,6 +34,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
     tag: searchParams.get('tag') ?? undefined,
     due: searchParams.get('due') ?? undefined,
     sort: searchParams.get('sort') ?? undefined,
+    search: searchParams.get('search') ?? undefined,
   })
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
       tag: searchParams.get('tag') ?? undefined,
       due: searchParams.get('due') ?? undefined,
       sort: searchParams.get('sort') ?? undefined,
+      search: searchParams.get('search') ?? undefined,
     })
   }, [searchParams])
 
@@ -75,10 +79,18 @@ export default function TasksFilterBar({ notes, tags, onChange, onApply }: Tasks
   if (filters.tag) pills.push({ key: 'tag', label: `#${filters.tag}` })
   if (filters.due) pills.push({ key: 'due', label: filters.due })
   if (filters.sort) pills.push({ key: 'sort', label: `Sort ${filters.sort}` })
+  if (filters.search) pills.push({ key: 'search', label: `“${filters.search}”` })
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex flex-wrap gap-2">
+        <Input
+          value={filters.search ?? ''}
+          onChange={e => update({ search: e.target.value || undefined })}
+          placeholder="Search tasks…"
+          className="h-9 w-48"
+          aria-label="Search tasks"
+        />
         <select
           value={filters.completion ?? ''}
           onChange={e => update({ completion: e.target.value || undefined })}

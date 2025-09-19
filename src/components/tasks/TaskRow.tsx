@@ -10,6 +10,7 @@ interface Task {
   title: string
   done: boolean
   due?: string
+  highlight?: string | null
 }
 
 interface TaskRowProps {
@@ -46,7 +47,14 @@ export default function TaskRow({ task, noteId, line }: TaskRowProps) {
         aria-label={task.done ? 'Mark task incomplete' : 'Mark task complete'}
       />
       <span className={cn('flex-1', task.done && 'line-through text-muted-foreground')}>
-        {task.title}
+        {task.highlight ? (
+          <span
+            dangerouslySetInnerHTML={{ __html: task.highlight }}
+            suppressHydrationWarning
+          />
+        ) : (
+          task.title
+        )}
       </span>
       <DateFilterTrigger
         value={task.due}
