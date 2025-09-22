@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TaskRow from '@/components/tasks/TaskRow'
 import { useSearchParams } from 'next/navigation'
 import { NavButton } from '@/components/NavButton'
+import { TASKS_PAGE_SIZE } from '@/lib/tasks/constants'
 
 type NoteOption = { id: string; title: string }
 
@@ -79,7 +80,7 @@ export function TasksClient({ notes, tags, initialFilters, initialTasks }: Tasks
             due: filters.due ?? null,
             sort: filters.sort ?? 'text',
             page: 1,
-            pageSize: 200,
+            pageSize: TASKS_PAGE_SIZE,
           }),
           signal: controller.signal,
         })
