@@ -43,7 +43,6 @@ describe('POST /api/search', () => {
     expect(body).toEqual({ scope: 'tasks', page: 1, pageSize: 20, results: [] })
 
     expect(rpcMock).toHaveBeenCalledWith('search_note_tasks', {
-      p_user_id: 'user-123',
       p_query: null,
       p_limit: 20,
       p_offset: 0,
@@ -69,7 +68,6 @@ describe('POST /api/search', () => {
     expect(body).toEqual({ scope: 'tasks', page: 1, pageSize: TASKS_PAGE_SIZE, results: [] })
 
     expect(rpcMock).toHaveBeenCalledWith('search_note_tasks', {
-      p_user_id: 'user-123',
       p_query: null,
       p_limit: TASKS_PAGE_SIZE,
       p_offset: 0,
