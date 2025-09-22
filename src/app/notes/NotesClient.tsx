@@ -11,19 +11,41 @@ type SearchState = {
   error: string | null
 }
 
+function sortNotesByUpdatedAt(list: Note[], sort: NoteFilters['sort']) {
+  return [...list].sort((a, b) => {
+    const aTime = new Date(a.updated_at).getTime()
+    const bTime = new Date(b.updated_at).getTime()
+
+    if (Number.isNaN(aTime) || Number.isNaN(bTime)) {
+      return 0
+    }
+
+    return sort === 'oldest' ? aTime - bTime : bTime - aTime
+  })
+}
+
 export function NotesClient({ notes }: { notes: Note[] }) {
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<NoteFilters>({ sort: 'newest' })
-  const [results, setResults] = useState<Note[]>(notes)
+  const [results, setResults] = useState<Note[]>(() => sortNotesByUpdatedAt(notes, 'newest'))
   const [{ loading, error }, setSearchState] = useState<SearchState>({ loading: false, error: null })
   const lastRequest = useRef<number>(0)
 
   useEffect(() => {
-    setResults(notes)
+    if (filters.search) {
+      return
+    }
+
+    setResults(sortNotesByUpdatedAt(notes, filters.sort))
     setSearchState({ loading: false, error: null })
-  }, [notes])
+  }, [notes, filters.search, filters.sort])
 
   useEffect(() => {
+    if (!filters.search) {
+      setSearchState({ loading: false, error: null })
+      return
+    }
+
     const requestId = Date.now()
     lastRequest.current = requestId
 
@@ -41,7 +63,7 @@ export function NotesClient({ notes }: { notes: Note[] }) {
             query: filters.search ?? null,
             sort: filters.sort,
             page: 1,
-            pageSize: 50,
+            pageSize: 200,
           }),
           signal: controller.signal,
         })
@@ -66,7 +88,7 @@ export function NotesClient({ notes }: { notes: Note[] }) {
               highlightBody: (result.highlightBody as string | null | undefined) ?? null,
               rank: Number(result.rank ?? 0),
             }))
-          setResults(mapped)
+          setResults(sortNotesByUpdatedAt(mapped, filters.sort))
         }
       } catch (err) {
         if (controller.signal.aborted) {
