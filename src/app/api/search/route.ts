@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase-server'
+import { TASKS_PAGE_SIZE } from '@/lib/tasks/constants'
 
 export const dynamic = 'force-dynamic'
 
 const baseSchema = z.object({
   query: z.string().nullish(),
   page: z.number().int().min(1).optional(),
-  pageSize: z.number().int().min(1).max(100).optional(),
+  pageSize: z.number().int().min(1).max(TASKS_PAGE_SIZE).optional(),
 })
 
 const notesSchema = baseSchema.extend({

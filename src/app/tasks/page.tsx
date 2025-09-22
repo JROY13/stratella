@@ -4,6 +4,7 @@ import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { extractTitleFromHtml } from '@/lib/note'
 import TasksClient from './TasksClient'
+import { TASKS_PAGE_SIZE } from '@/lib/tasks/constants'
 
 type SearchParamMap = Record<string, string | string[] | undefined>
 
@@ -50,7 +51,7 @@ export default async function TasksPage({
   const { data: taskRows, error: taskError } = await supabase.rpc('search_note_tasks', {
     p_user_id: user.id,
     p_query: initialFilters.search ?? null,
-    p_limit: 200,
+    p_limit: TASKS_PAGE_SIZE,
     p_offset: 0,
     p_completion: initialFilters.completion ?? null,
     p_tag: initialFilters.tag ?? null,
