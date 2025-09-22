@@ -49,7 +49,6 @@ export default async function TasksPage({
   ).sort()
 
   const { data: taskRows, error: taskError } = await supabase.rpc('search_note_tasks', {
-    p_user_id: user.id,
     p_query: initialFilters.search ?? null,
     p_limit: TASKS_PAGE_SIZE,
     p_offset: 0,

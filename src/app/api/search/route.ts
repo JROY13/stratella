@@ -107,7 +107,6 @@ export async function POST(req: Request) {
     if (payload.scope === 'notes') {
       const response = await searchNotes(payload, {
         supabase,
-        userId: user.id,
         page,
         pageSize,
         offset,
@@ -117,7 +116,6 @@ export async function POST(req: Request) {
 
     const response = await searchTasks(payload, {
       supabase,
-      userId: user.id,
       page,
       pageSize,
       offset,
@@ -131,7 +129,6 @@ export async function POST(req: Request) {
 
 interface SearchContext {
   supabase: Awaited<ReturnType<typeof supabaseServer>>
-  userId: string
   page: number
   pageSize: number
   offset: number
@@ -140,7 +137,6 @@ interface SearchContext {
 async function searchNotes(payload: NotesPayload, ctx: SearchContext): Promise<SearchResponse> {
   const queryText = sanitizeQuery(payload.query)
   const { data, error } = await ctx.supabase.rpc('search_notes', {
-    p_user_id: ctx.userId,
     p_query: queryText,
     p_limit: ctx.pageSize,
     p_offset: ctx.offset,
@@ -172,7 +168,6 @@ async function searchNotes(payload: NotesPayload, ctx: SearchContext): Promise<S
 async function searchTasks(payload: TasksPayload, ctx: SearchContext): Promise<SearchResponse> {
   const queryText = sanitizeQuery(payload.query)
   const { data, error } = await ctx.supabase.rpc('search_note_tasks', {
-    p_user_id: ctx.userId,
     p_query: queryText,
     p_limit: ctx.pageSize,
     p_offset: ctx.offset,
