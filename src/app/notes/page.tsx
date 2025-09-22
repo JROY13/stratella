@@ -2,14 +2,33 @@ export const dynamic = 'force-dynamic'
 
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { Note } from './NotesList'
-import { countOpenTasks } from '@/lib/taskparse'
+import type { Note } from './NotesList'
 import { NavButton } from '@/components/NavButton'
 import { NotesClient } from './NotesClient'
-import { extractTitleFromHtml } from '@/lib/note'
 import { QuickCaptureButton } from '@/components/quick-capture/QuickCaptureButton'
 
-const EMPTY_HTML = '<h1></h1>'
+type NoteRow = {
+  id: string
+  title: string | null
+  open_tasks: number | string | null
+  updated_at: string
+}
+
+function parseOpenTasks(value: NoteRow['open_tasks']): number {
+  if (typeof value === 'number') {
+    return value
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (trimmed !== '') {
+      const parsed = Number(trimmed)
+      if (!Number.isNaN(parsed)) {
+        return parsed
+      }
+    }
+  }
+  return 0
+}
 
 export default async function NotesPage() {
   const supabase = await supabaseServer()
@@ -20,22 +39,24 @@ export default async function NotesPage() {
 
   const { data: notes } = await supabase
     .from('notes')
-    .select('id,updated_at,body')
+    .select('id,title,open_tasks,updated_at')
     .order('updated_at', { ascending: false })
 
-  const enriched: Note[] = (notes ?? [])
-    .filter(n => {
-      const body = (n.body ?? '').trim()
-      return body !== '' && body !== EMPTY_HTML
+  const enriched: Note[] = ((notes ?? []) as NoteRow[])
+    .map(note => {
+      const title = note.title ?? ''
+      const openTasks = parseOpenTasks(note.open_tasks)
+
+      return {
+        id: note.id,
+        title,
+        updated_at: note.updated_at,
+        openTasks,
+        highlightTitle: null,
+        highlightBody: null,
+      }
     })
-    .map(n => ({
-      id: n.id,
-      title: extractTitleFromHtml(n.body),
-      updated_at: n.updated_at,
-      openTasks: countOpenTasks(n.body || ''),
-      highlightTitle: null,
-      highlightBody: null,
-    }))
+    .filter(note => note.title.trim() !== '' || note.openTasks > 0)
 
   return (
     <div className="space-y-6">
