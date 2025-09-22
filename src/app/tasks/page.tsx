@@ -2,144 +2,94 @@ export const dynamic = 'force-dynamic'
 
 import { supabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { NavButton } from '@/components/NavButton'
-import { extractTasksFromHtml, filterTasks, TaskFilters, TaskWithNote } from '@/lib/taskparse'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import TaskRow from '@/components/tasks/TaskRow'
-import TasksFilters from '@/components/tasks/TasksFilters'
-import ViewSelector from '@/components/ViewSelector'
 import { extractTitleFromHtml } from '@/lib/note'
+import TasksClient from './TasksClient'
 
-export default async function TasksPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+type SearchParamMap = Record<string, string | string[] | undefined>
+
+export default async function TasksPage({
+  searchParams,
+}: {
+  searchParams?: Promise<SearchParamMap>
+}) {
   const supabase = await supabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-    const { data: notes } = await supabase
-      .from('notes')
-      .select('id,body,updated_at')
-      .order('updated_at', { ascending: false })
+  const params = (searchParams ? await searchParams : {}) ?? {}
 
-    const tasks: (TaskWithNote & { noteTitle: string })[] = []
-    const noteOptions: { id: string; title: string }[] = []
-    for (const n of notes ?? []) {
-      const title = extractTitleFromHtml(n.body) || 'Untitled'
-      const todos = extractTasksFromHtml(n.body)
-      tasks.push(
-        ...todos.map(t => ({ ...t, noteId: n.id, noteTitle: title }))
-      )
-      noteOptions.push({ id: n.id, title })
-    }
+  const normalize = (value: string | string[] | undefined) =>
+    typeof value === 'string' ? value.trim() || undefined : undefined
 
-    const tagOptions = Array.from(new Set(tasks.flatMap(t => t.tags))).sort()
-
-  const params = await searchParams
-
-  const noteId = typeof params.note === 'string' ? params.note : undefined
-
-  const viewParam = typeof params.view === 'string' ? params.view : undefined
-  const view = viewParam === 'card' ? 'card' : 'list'
-
-  const filters: TaskFilters = {
-    completion: typeof params.completion === 'string' ? params.completion : undefined,
-    tag: typeof params.tag === 'string' ? params.tag : undefined,
-    due: typeof params.due === 'string' ? params.due : undefined,
-    sort: typeof params.sort === 'string' ? params.sort : undefined,
+  const initialFilters = {
+    completion: normalize(params.completion),
+    tag: normalize(params.tag),
+    due: normalize(params.due),
+    sort: normalize(params.sort),
+    note: normalize(params.note),
+    search: normalize(params.search),
   }
 
-  const scoped = noteId ? tasks.filter(t => t.noteId === noteId) : tasks
-  const filtered = filterTasks(scoped, filters)
+  const { data: notes } = await supabase
+    .from('notes')
+    .select('id, body, title, updated_at')
+    .order('updated_at', { ascending: false })
 
-  const groups: { id: string; title: string; tasks: typeof filtered }[] = []
-  for (const t of filtered) {
-    let g = groups.find(g => g.id === t.noteId)
-    if (!g) {
-      g = { id: t.noteId, title: t.noteTitle, tasks: [] }
-      groups.push(g)
-    }
-    g.tasks.push(t)
+  const noteOptions = (notes ?? []).map(n => ({
+    id: n.id,
+    title: n.title || extractTitleFromHtml(n.body) || 'Untitled',
+  }))
+
+  const { data: tagRows } = await supabase.from('note_tasks').select('tags')
+  const tags = Array.from(
+    new Set((tagRows ?? []).flatMap(row => (row.tags as string[] | null | undefined) ?? [])),
+  ).sort()
+
+  const { data: taskRows, error: taskError } = await supabase.rpc('search_note_tasks', {
+    p_user_id: user.id,
+    p_query: initialFilters.search ?? null,
+    p_limit: 200,
+    p_offset: 0,
+    p_completion: initialFilters.completion ?? null,
+    p_tag: initialFilters.tag ?? null,
+    p_note_id: initialFilters.note ?? null,
+    p_due: initialFilters.due ?? null,
+    p_sort: initialFilters.sort ?? 'text',
+  })
+
+  if (taskError) {
+    console.error('search_note_tasks RPC failed', taskError)
   }
 
-  const emptyMessage =
-    filters.completion === 'done' ? 'No closed tasks' : 'No tasks found'
+  const initialTasks = (taskRows ?? []).map((row: Record<string, unknown>) => ({
+    noteId: row.note_id as string,
+    line: Number(row.line ?? 0),
+    text: row.text as string,
+    tags: (row.tags as string[] | null | undefined) ?? [],
+    due: (row.due as string | null | undefined) ?? null,
+    status: (row.status as string | null | undefined) ?? null,
+    isCompleted: Boolean(row.is_completed),
+    noteTitle: (row.note_title as string | null | undefined) ?? null,
+    noteUpdatedAt: row.note_updated_at as string,
+    highlight: (row.highlight as string | null | undefined) ?? null,
+    rank: Number(row.rank ?? 0),
+  }))
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Task List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TasksFilters notes={noteOptions} tags={tagOptions}>
-            <ViewSelector
-              defaultValue="list"
-              options={[
-                { value: 'list', label: 'List', icon: 'list' },
-                { value: 'card', label: 'Card', icon: 'card' },
-              ]}
-            />
-          </TasksFilters>
-          {groups.length === 0 ? (
-            <p className="text-muted-foreground">{emptyMessage}</p>
-          ) : view === 'card' ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {groups.map(group => (
-                <Card key={group.id} className="hover:shadow-sm transition w-full">
-                  <CardHeader>
-                    <CardTitle>
-                      <NavButton
-                        href={`/notes/${group.id}`}
-                        variant="link"
-                        className="p-0 h-auto font-medium underline"
-                      >
-                        <span className="truncate block max-w-[12rem]">
-                          {group.title}
-                        </span>
-                      </NavButton>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {group.tasks.map(t => (
-                        <TaskRow
-                          key={t.line}
-                          task={{ title: t.text, done: t.checked, due: t.due }}
-                          noteId={group.id}
-                          line={t.line}
-                        />
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {groups.map(group => (
-                <div key={group.id}>
-                  <NavButton
-                    href={`/notes/${group.id}`}
-                    variant="link"
-                    className="p-0 h-auto font-medium underline"
-                  >
-                    {group.title}
-                  </NavButton>
-                  <ul className="mt-2 space-y-2">
-                    {group.tasks.map(t => (
-                      <TaskRow
-                        key={t.line}
-                        task={{ title: t.text, done: t.checked, due: t.due }}
-                        noteId={group.id}
-                        line={t.line}
-                      />
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <TasksClient
+        notes={noteOptions}
+        tags={tags}
+        initialFilters={initialFilters}
+        initialTasks={initialTasks}
+        initialError={
+          taskError
+            ? 'Unable to load tasks. Please try again.'
+            : null
+        }
+      />
     </div>
   )
 }

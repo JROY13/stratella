@@ -12,13 +12,15 @@ interface TasksFiltersProps {
   notes: NoteOption[]
   tags: string[]
   children?: ReactNode
+  onFiltersChange?: (filters: FilterState) => void
 }
 
 interface FilterState extends TaskFilters {
   note?: string
+  search?: string
 }
 
-export default function TasksFilters({ notes, tags, children }: TasksFiltersProps) {
+export default function TasksFilters({ notes, tags, children, onFiltersChange }: TasksFiltersProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -50,7 +52,7 @@ export default function TasksFilters({ notes, tags, children }: TasksFiltersProp
         <TasksFilterBar
           notes={notes}
           tags={tags}
-          onChange={() => {}}
+          onChange={filters => onFiltersChange?.(filters)}
           onApply={handleApply}
         />
       )}
