@@ -5,7 +5,7 @@ import { supabaseServer } from '@/lib/supabase-server'
 export const dynamic = 'force-dynamic'
 
 const baseSchema = z.object({
-  query: z.string().optional(),
+  query: z.string().nullish(),
   page: z.number().int().min(1).optional(),
   pageSize: z.number().int().min(1).max(100).optional(),
 })
@@ -17,10 +17,10 @@ const notesSchema = baseSchema.extend({
 
 const tasksSchema = baseSchema.extend({
   scope: z.literal('tasks'),
-  completion: z.enum(['open', 'done']).optional(),
-  noteId: z.string().uuid().optional(),
-  tag: z.string().optional(),
-  due: z.string().optional(),
+  completion: z.enum(['open', 'done']).nullish(),
+  noteId: z.string().uuid().nullish(),
+  tag: z.string().nullish(),
+  due: z.string().nullish(),
   sort: z.enum(['due', 'text']).optional(),
 })
 
