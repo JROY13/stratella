@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://stratella.vercel.app'),
   title: 'Stratella',
   description: 'All your tasks from every note, in one place. Markdown in, clarity out.',
+  icons: {
+    icon: '/favicon.ico',
+  },
   openGraph: {
     title: 'Stratella',
     description: 'All your tasks. From every note. In one place.',
