@@ -85,7 +85,6 @@ export default function NoteClient({
         action={onDelete}
         onSubmit={() => {
           setDeleting(true)
-          console.log('[delete-note]', noteId)
         }}
       >
         <Button type="submit" variant="outline" disabled={deleting}>

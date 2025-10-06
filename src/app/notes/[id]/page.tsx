@@ -29,9 +29,6 @@ export default async function NotePage({
   if (!note) redirect("/notes");
 
   const body = note.body ?? "";
-  if (note.body == null) {
-    console.warn(`Note ${id} has no body`);
-  }
   const html = body;
 
   const openTasks = extractTasksFromHtml(body).filter(t => !t.checked).length;
