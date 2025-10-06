@@ -265,6 +265,7 @@ export default function InlineEditor({
 }: InlineEditorProps) {
   const [resolvedNoteId] = React.useState(() => noteId ?? crypto.randomUUID());
   const hasPersistedRef = React.useRef(Boolean(noteId));
+  const [saveError, setSaveError] = React.useState<string | null>(null);
   const editor = useEditor({
     extensions: createInlineEditorExtensions(),
     editorProps: {
@@ -342,6 +343,7 @@ export default function InlineEditor({
         clearTimeout(retryTimeout.current);
         retryTimeout.current = null;
       }
+      setSaveError(null);
       if (opts?.sync && navigator.sendBeacon && hasPersistedRef.current) {
         attempts.current = 0;
         setStatus("saving");
@@ -377,6 +379,12 @@ export default function InlineEditor({
         setStatus,
         attempts,
         retryTimeout,
+        {
+          onError: (err) => {
+            console.error('Failed to save note after retries:', err);
+            setSaveError('Failed to save. Please check your connection.');
+          },
+        },
       )
         .then((res) => {
           onSaved?.(res);
@@ -466,10 +474,16 @@ export default function InlineEditor({
       <div className="editor-prose prose prose-neutral dark:prose-invert max-w-none pb-6 prose-h1:mt-6 prose-h1:mb-4">
         <EditorContent editor={editor} />
       </div>
-      <div className="text-xs text-muted-foreground text-right h-4">
-        {status === "saving" && "Saving…"}
-        {status === "saved" && "Saved"}
-        {status === "retrying" && "Retrying"}
+      <div className="text-xs text-right h-4 flex items-center justify-end gap-2">
+        {saveError ? (
+          <span className="text-red-600 dark:text-red-400">{saveError}</span>
+        ) : (
+          <span className="text-muted-foreground">
+            {status === "saving" && "Saving…"}
+            {status === "saved" && "Saved"}
+            {status === "retrying" && "Retrying"}
+          </span>
+        )}
       </div>
     </div>
   );

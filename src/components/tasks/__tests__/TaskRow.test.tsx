@@ -5,8 +5,8 @@ import { vi } from "vitest";
 import TaskRow from "../TaskRow";
 
 vi.mock("@/app/actions", () => ({
-  toggleTaskFromNote: vi.fn(),
-  setTaskDueFromNote: vi.fn(),
+  toggleTaskFromNote: vi.fn(() => Promise.resolve()),
+  setTaskDueFromNote: vi.fn(() => Promise.resolve()),
 }));
 
 test("calls toggleTaskFromNote when checkbox toggled", async () => {
