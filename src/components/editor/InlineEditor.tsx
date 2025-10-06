@@ -268,6 +268,7 @@ export default function InlineEditor({
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const editor = useEditor({
     extensions: createInlineEditorExtensions(),
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: "focus:outline-none",

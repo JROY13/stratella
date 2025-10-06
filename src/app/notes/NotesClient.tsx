@@ -120,23 +120,33 @@ export function NotesClient({ notes }: { notes: Note[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <ViewSelector
-          defaultValue="card"
-          options={[
-            { value: 'card', label: 'Card', icon: 'card' },
-            { value: 'grid', label: 'Grid', icon: 'grid' },
-            { value: 'list', label: 'List', icon: 'list' },
-          ]}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <ViewSelector
+            defaultValue="card"
+            options={[
+              { value: 'card', label: 'Card', icon: 'card' },
+              { value: 'grid', label: 'Grid', icon: 'grid' },
+              { value: 'list', label: 'List', icon: 'list' },
+            ]}
+          />
+          <button
+            type="button"
+            aria-label="Toggle filters"
+            onClick={() => setShowFilters(s => !s)}
+            className="rounded-md border border-input p-2 hover:bg-accent/50"
+          >
+            <Filter className="size-4" />
+          </button>
+        </div>
+        <input
+          type="search"
+          placeholder="Search notes..."
+          value={filters.search ?? ''}
+          onChange={e => setFilters(f => ({ ...f, search: e.target.value || undefined }))}
+          className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring sm:w-64"
+          aria-label="Search notes"
         />
-        <button
-          type="button"
-          aria-label="Toggle filters"
-          onClick={() => setShowFilters(s => !s)}
-          className="rounded-md border border-input p-2 hover:bg-accent/50"
-        >
-          <Filter className="size-4" />
-        </button>
       </div>
       {showFilters && <FilterBar onChange={setFilters} />}
       {error && results.length > 0 && (
